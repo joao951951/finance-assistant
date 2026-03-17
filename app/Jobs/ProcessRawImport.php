@@ -51,6 +51,8 @@ class ProcessRawImport implements ShouldQueue
         }
 
         $this->rawImport->markDone($count);
+
+        CategorizeTransactions::dispatch($userId, $rawImportId);
     }
 
     public function failed(Throwable $e): void

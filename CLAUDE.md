@@ -121,7 +121,12 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - `ImportController` + routes + `RawImportPolicy`
   - Wayfinder actions at `@/actions/App/Http/Controllers/ImportController` — use `.url()` when passing to Inertia's `post()`
   - Page: `resources/js/pages/imports/index.tsx`
-- [ ] **Phase 3:** AI categorization pipeline (queued job)
+- [x] **Phase 3:** AI categorization pipeline (queued job)
+  - `OpenAiService`: batch categorization via `gpt-4o` with `response_format: json_object`
+  - `CategorizationService`: keyword match first (free/fast) → AI fallback for remainder in chunks of 50
+  - `CategorizeTransactions` job dispatched automatically after `ProcessRawImport` completes
+  - `CategorySeeder` with 9 default PT-BR categories; call `CategorySeeder::seedForUser($user)` on registration
+  - Config em `config/services.php` → `services.openai.*`
 - [ ] **Phase 4:** Dashboard with charts
 - [ ] **Phase 5:** pgvector embeddings + RAG setup
 - [ ] **Phase 6:** AI chat interface
