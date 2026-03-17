@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, MessageSquare, Upload } from 'lucide-react';
+import { BookOpen, FolderGit2, KeyRound, LayoutGrid, MessageSquare, Upload } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -16,6 +16,7 @@ import {
 import { dashboard } from '@/routes';
 import ImportController from '@/actions/App/Http/Controllers/ImportController';
 import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
+import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -33,6 +34,11 @@ const mainNavItems: NavItem[] = [
         title: 'Chat com IA',
         href: ConversationController.index.url(),
         icon: MessageSquare,
+    },
+    {
+        title: 'API / IA',
+        href: ApiController.edit.url(),
+        icon: KeyRound,
     },
 ];
 

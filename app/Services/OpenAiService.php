@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Support\Facades\Log;
 use OpenAI; // root-namespace class from openai-php/client — IDE false positive, works at runtime
 use OpenAI\Client;
 
@@ -19,9 +21,26 @@ class OpenAiService
         ?string $chatModel = null,
         ?string $embeddingModel = null,
     ) {
-        $this->client         = OpenAI::client($apiKey ?? config('services.openai.api_key', ''));
+        $resolvedKey          = $apiKey ?? config('services.openai.api_key', '');
         $this->chatModel      = $chatModel ?? config('services.openai.chat_model', 'gpt-4o');
         $this->embeddingModel = $embeddingModel ?? config('services.openai.embedding_model', 'text-embedding-3-small');
+
+        $certPath  = storage_path('cacert.pem');
+        $guzzle    = new GuzzleClient([
+            'verify' => file_exists($certPath) ? $certPath : true,
+        ]);
+
+        $this->client = OpenAI::factory()
+            ->withApiKey($resolvedKey)
+            ->withHttpClient($guzzle)
+            ->make();
+
+        Log::debug('[OpenAI] Service instantiated', [
+            'has_key'         => ! empty($resolvedKey),
+            'key_prefix'      => ! empty($resolvedKey) ? substr($resolvedKey, 0, 10) . '...' : 'none',
+            'chat_model'      => $this->chatModel,
+            'embedding_model' => $this->embeddingModel,
+        ]);
     }
 
     /**
@@ -81,13 +100,38 @@ class OpenAiService
             Exemplo: {"1": "Alimentação", "2": "Transporte"}
             PROMPT;
 
-        $response = $this->client->chat()->create([
-            'model'           => $this->chatModel,
-            'messages'        => [
-                ['role' => 'user', 'content' => trim($prompt)],
-            ],
-            'temperature'     => 0,
-            'response_format' => ['type' => 'json_object'],
+        Log::info('[OpenAI] categorizeTransactions → request', [
+            'model'             => $this->chatModel,
+            'transactions_count' => count($transactions),
+        ]);
+
+        $start = microtime(true);
+
+        try {
+            $response = $this->client->chat()->create([
+                'model'           => $this->chatModel,
+                'messages'        => [
+                    ['role' => 'user', 'content' => trim($prompt)],
+                ],
+                'temperature'     => 0,
+                'response_format' => ['type' => 'json_object'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[OpenAI] categorizeTransactions → FAILED', [
+                'error'   => $e->getMessage(),
+                'elapsed' => round(microtime(true) - $start, 3) . 's',
+            ]);
+            throw $e;
+        }
+
+        $elapsed = round(microtime(true) - $start, 3);
+        $usage   = $response->usage;
+
+        Log::info('[OpenAI] categorizeTransactions → response', [
+            'elapsed'          => $elapsed . 's',
+            'prompt_tokens'    => $usage?->promptTokens,
+            'completion_tokens' => $usage?->completionTokens,
+            'total_tokens'     => $usage?->totalTokens,
         ]);
 
         $content = $response->choices[0]->message->content ?? '{}';
@@ -116,9 +160,34 @@ class OpenAiService
             return [];
         }
 
-        $response = $this->client->embeddings()->create([
+        Log::info('[OpenAI] embeddings → request', [
             'model' => $this->embeddingModel,
-            'input' => array_values($texts),
+            'count' => count($texts),
+        ]);
+
+        $start = microtime(true);
+
+        try {
+            $response = $this->client->embeddings()->create([
+                'model' => $this->embeddingModel,
+                'input' => array_values($texts),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[OpenAI] embeddings → FAILED', [
+                'error'   => $e->getMessage(),
+                'elapsed' => round(microtime(true) - $start, 3) . 's',
+            ]);
+            throw $e;
+        }
+
+        $elapsed = round(microtime(true) - $start, 3);
+        $usage   = $response->usage;
+
+        Log::info('[OpenAI] embeddings → response', [
+            'elapsed'       => $elapsed . 's',
+            'prompt_tokens' => $usage?->promptTokens,
+            'total_tokens'  => $usage?->totalTokens,
+            'vectors_count' => count($response->embeddings),
         ]);
 
         return array_map(
@@ -134,10 +203,36 @@ class OpenAiService
      */
     public function chat(array $messages, float $temperature = 0.7): string
     {
-        $response = $this->client->chat()->create([
-            'model'       => $this->chatModel,
-            'messages'    => $messages,
-            'temperature' => $temperature,
+        Log::info('[OpenAI] chat → request', [
+            'model'           => $this->chatModel,
+            'messages_count'  => count($messages),
+            'temperature'     => $temperature,
+        ]);
+
+        $start = microtime(true);
+
+        try {
+            $response = $this->client->chat()->create([
+                'model'       => $this->chatModel,
+                'messages'    => $messages,
+                'temperature' => $temperature,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[OpenAI] chat → FAILED', [
+                'error'   => $e->getMessage(),
+                'elapsed' => round(microtime(true) - $start, 3) . 's',
+            ]);
+            throw $e;
+        }
+
+        $elapsed = round(microtime(true) - $start, 3);
+        $usage   = $response->usage;
+
+        Log::info('[OpenAI] chat → response', [
+            'elapsed'           => $elapsed . 's',
+            'prompt_tokens'     => $usage?->promptTokens,
+            'completion_tokens' => $usage?->completionTokens,
+            'total_tokens'      => $usage?->totalTokens,
         ]);
 
         return $response->choices[0]->message->content ?? '';

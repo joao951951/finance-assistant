@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Personal finance assistant where users import bank statements (CSV/PDF) and get AI-powered insights on spending patterns and savings suggestions.
+Personal finance assistant where users import bank statements (CSV) and get AI-powered insights on spending patterns and savings suggestions.
 
 **Stack:** Laravel 13 + React 19 (Inertia.js) + OpenAI GPT-4o + pgvector (RAG) + Tailwind CSS v4 + shadcn/ui
 
@@ -27,7 +27,7 @@ Personal finance assistant where users import bank statements (CSV/PDF) and get 
 
 ## Key Features (to be implemented)
 
-1. **Statement Import** — Upload CSV or PDF bank statements
+1. **Statement Import** — Upload CSV bank statements
 2. **Transaction Parsing** — Extract and normalize transactions
 3. **Categorization** — AI auto-categorizes transactions
 4. **Dashboard** — Charts and summaries of spending
@@ -82,8 +82,8 @@ npm run types:check
 ### PHP
 - Follow PSR-12 via Laravel Pint (auto-formatted)
 - Use Action classes for business operations (see `app/Actions/` and `app/actions/` — both exist)
-- Jobs for all async processing (AI calls, PDF parsing)
-- Services for external integrations (OpenAI, PDF parser)
+- Jobs for all async processing (AI calls, CSV parsing)
+- Services for external integrations (OpenAI, CSV parser)
 
 ### TypeScript / React
 - Strict TypeScript — no `any`
@@ -145,8 +145,8 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - Resposta síncrona (POST espera o GPT) — simples e funcional para portfólio
   - Page: `resources/js/pages/chat/index.tsx` — split pane (sidebar conversas + área de chat)
   - Sugestões de perguntas na tela vazia; Enter envia mensagem; loading bubble durante espera
-- [x] **Phase 7:** PDF import support
-  - `PdfParserService` — usa `smalot/pdfparser` para extrair texto; regex por banco (Nubank, Inter, Bradesco, C6, genérico)
+- [x] **Phase 7:** CSV import support
+  - `CsvParserService` — usa `smalot/pdfparser` para extrair texto; regex por banco (Nubank, Inter, Bradesco, C6, genérico)
   - Detecta banco pelo texto do PDF (palavras-chave no cabeçalho)
   - `ProcessRawImport` roteado: `type === 'pdf'` → `PdfParserService`, caso contrário → `CsvParserService`
   - `ImportController` aceita `mimes:csv,txt,pdf` (até 20 MB)
