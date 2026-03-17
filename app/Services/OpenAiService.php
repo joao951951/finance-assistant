@@ -70,4 +70,27 @@ class OpenAiService
 
         return $result;
     }
+
+    /**
+     * Generate embeddings for a batch of texts (up to 2048 inputs per call).
+     *
+     * @param  array<int, string>  $texts
+     * @return array<int, float[]>  Ordered list of embedding vectors
+     */
+    public function embeddings(array $texts): array
+    {
+        if (empty($texts)) {
+            return [];
+        }
+
+        $response = $this->client->embeddings()->create([
+            'model' => config('services.openai.embedding_model', 'text-embedding-3-small'),
+            'input' => array_values($texts),
+        ]);
+
+        return array_map(
+            fn ($item) => $item->embedding,
+            $response->embeddings
+        );
+    }
 }

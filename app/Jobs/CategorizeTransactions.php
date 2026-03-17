@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\RawImport;
 use App\Services\CategorizationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -23,5 +22,7 @@ class CategorizeTransactions implements ShouldQueue
     public function handle(CategorizationService $service): void
     {
         $service->categorizeForUser($this->userId, $this->rawImportId);
+
+        GenerateEmbeddings::dispatch($this->rawImportId);
     }
 }

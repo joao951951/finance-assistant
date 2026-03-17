@@ -132,7 +132,12 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - All queries in PostgreSQL (TO_CHAR, COALESCE, SUM CASE WHEN)
   - Charts: Recharts `PieChart` (donut) + `BarChart` — use `formatter={(v) => formatBRL(Number(v))}` no Tooltip (ValueType issue)
   - Page: `resources/js/pages/dashboard.tsx`
-- [ ] **Phase 5:** pgvector embeddings + RAG setup
+- [x] **Phase 5:** pgvector embeddings + RAG setup
+  - `OpenAiService::embeddings(string[])` — batch embeddings via `text-embedding-3-small`
+  - `EmbeddingService` — `generateForImport()` chunks transactions, calls API, stores via `DB::statement('UPDATE ... SET embedding = ?::vector')`
+  - `GenerateEmbeddings` job — dispatched by `CategorizeTransactions` on completion (pipeline: Parse → Categorize → Embed)
+  - `RagService::search()` — cosine distance via pgvector `<=>` operator; `contextFor()` returns formatted string for prompts
+  - Embeddings stored/queried always via raw SQL — Eloquent não suporta o tipo `vector`
 - [ ] **Phase 6:** AI chat interface
 - [ ] **Phase 7:** PDF import support
 
