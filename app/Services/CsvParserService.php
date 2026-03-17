@@ -147,8 +147,8 @@ class CsvParserService
             return null;
         }
 
-        // Handle BR format: 1.234,56 → 1234.56
-        if (preg_match('/^\-?\d{1,3}(\.\d{3})*(,\d{2})?$/', $clean)) {
+        // Handle BR format: 1.234,56 or 2500,00 → decimal comma
+        if (preg_match('/^\-?\d[\d.]*,\d{2}$/', $clean)) {
             $clean = str_replace(['.', ','], ['', '.'], $clean);
         } else {
             // EN format: remove thousand separator comma
