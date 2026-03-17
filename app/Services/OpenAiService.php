@@ -93,4 +93,20 @@ class OpenAiService
             $response->embeddings
         );
     }
+
+    /**
+     * Generic chat completion.
+     *
+     * @param  array<int, array{role: string, content: string}>  $messages
+     */
+    public function chat(array $messages, float $temperature = 0.7): string
+    {
+        $response = $this->client->chat()->create([
+            'model'       => config('services.openai.chat_model', 'gpt-4o'),
+            'messages'    => $messages,
+            'temperature' => $temperature,
+        ]);
+
+        return $response->choices[0]->message->content ?? '';
+    }
 }

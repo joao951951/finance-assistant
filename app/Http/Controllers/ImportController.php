@@ -27,16 +27,18 @@ class ImportController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:10240'],
+            'file' => ['required', 'file', 'mimes:csv,txt,pdf', 'max:20480'],
         ]);
 
-        $file = $request->file('file');
-        $path = $file->store('imports/' . $request->user()->id, 'local');
+        $file      = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $type      = $extension === 'pdf' ? 'pdf' : 'csv';
+        $path      = $file->store('imports/' . $request->user()->id, 'local');
 
         $rawImport = RawImport::create([
             'user_id'  => $request->user()->id,
             'filename' => $file->getClientOriginalName(),
-            'type'     => 'csv',
+            'type'     => $type,
             'path'     => $path,
             'status'   => 'pending',
         ]);

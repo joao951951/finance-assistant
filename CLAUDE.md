@@ -138,8 +138,19 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - `GenerateEmbeddings` job — dispatched by `CategorizeTransactions` on completion (pipeline: Parse → Categorize → Embed)
   - `RagService::search()` — cosine distance via pgvector `<=>` operator; `contextFor()` returns formatted string for prompts
   - Embeddings stored/queried always via raw SQL — Eloquent não suporta o tipo `vector`
-- [ ] **Phase 6:** AI chat interface
-- [ ] **Phase 7:** PDF import support
+- [x] **Phase 6:** AI chat interface
+  - `ChatService::reply()` — persiste mensagens, busca RAG, chama GPT-4o, auto-gera título na 1ª mensagem
+  - `ConversationController` (index/show/store/destroy) + `MessageController` (store)
+  - `ConversationPolicy` — protege acesso por `user_id`
+  - Resposta síncrona (POST espera o GPT) — simples e funcional para portfólio
+  - Page: `resources/js/pages/chat/index.tsx` — split pane (sidebar conversas + área de chat)
+  - Sugestões de perguntas na tela vazia; Enter envia mensagem; loading bubble durante espera
+- [x] **Phase 7:** PDF import support
+  - `PdfParserService` — usa `smalot/pdfparser` para extrair texto; regex por banco (Nubank, Inter, Bradesco, C6, genérico)
+  - Detecta banco pelo texto do PDF (palavras-chave no cabeçalho)
+  - `ProcessRawImport` roteado: `type === 'pdf'` → `PdfParserService`, caso contrário → `CsvParserService`
+  - `ImportController` aceita `mimes:csv,txt,pdf` (até 20 MB)
+  - Frontend atualizado: `accept=".csv,.txt,.pdf"`
 
 ## Notes
 
