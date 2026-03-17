@@ -127,7 +127,11 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - `CategorizeTransactions` job dispatched automatically after `ProcessRawImport` completes
   - `CategorySeeder` with 9 default PT-BR categories; call `CategorySeeder::seedForUser($user)` on registration
   - Config em `config/services.php` → `services.openai.*`
-- [ ] **Phase 4:** Dashboard with charts
+- [x] **Phase 4:** Dashboard with charts
+  - `DashboardController` (invokable): summary cards, spending by category, monthly trend (6 months), recent transactions
+  - All queries in PostgreSQL (TO_CHAR, COALESCE, SUM CASE WHEN)
+  - Charts: Recharts `PieChart` (donut) + `BarChart` — use `formatter={(v) => formatBRL(Number(v))}` no Tooltip (ValueType issue)
+  - Page: `resources/js/pages/dashboard.tsx`
 - [ ] **Phase 5:** pgvector embeddings + RAG setup
 - [ ] **Phase 6:** AI chat interface
 - [ ] **Phase 7:** PDF import support
