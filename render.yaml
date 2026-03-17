@@ -1,0 +1,132 @@
+services:
+  # ── Web (Laravel + Nginx + PHP-FPM) ────────────────────────────────────────
+  - type: web
+    name: finance-assistant
+    env: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://finance-assistant.onrender.com  # altere para sua URL real
+
+      # Banco — preenchido automaticamente pelo Render
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: finance-assistant-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: finance-assistant-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: finance-assistant-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: finance-assistant-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: finance-assistant-db
+          property: password
+
+      # Drivers — usam banco (sem Redis necessário)
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+
+      # Logs para stdout (Render captura automaticamente)
+      - key: LOG_CHANNEL
+        value: stderr
+
+      # OpenAI global (cada usuário pode sobrescrever nas configurações)
+      - key: OPENAI_API_KEY
+        sync: false   # preencha manualmente no dashboard do Render
+      - key: OPENAI_CHAT_MODEL
+        value: gpt-4o
+      - key: OPENAI_EMBEDDING_MODEL
+        value: text-embedding-3-small
+
+  # ── Worker (Laravel Queue) ──────────────────────────────────────────────────
+  - type: worker
+    name: finance-assistant-worker
+    env: docker
+    plan: free
+    dockerCommand: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        fromService:
+          name: finance-assistant
+          type: web
+          envVarKey: APP_KEY
+      - key: APP_URL
+        fromService:
+          name: finance-assistant
+          type: web
+          envVarKey: APP_URL
+
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: finance-assistant-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: finance-assistant-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: finance-assistant-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: finance-assistant-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: finance-assistant-db
+          property: password
+
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: LOG_CHANNEL
+        value: stderr
+
+      - key: OPENAI_API_KEY
+        fromService:
+          name: finance-assistant
+          type: web
+          envVarKey: OPENAI_API_KEY
+      - key: OPENAI_CHAT_MODEL
+        value: gpt-4o
+      - key: OPENAI_EMBEDDING_MODEL
+        value: text-embedding-3-small
+
+# ── Banco de Dados PostgreSQL ─────────────────────────────────────────────────
+# ATENÇÃO: o plano free do Render NÃO suporta pgvector.
+# Use o plano "Starter" ($7/mês) ou um banco externo (Supabase/Neon — gratuitos).
+# Para usar banco externo: remova este bloco e configure as variáveis DB_* manualmente.
+databases:
+  - name: finance-assistant-db
+    databaseName: finance_assistant
+    user: finance_user
+    plan: free
