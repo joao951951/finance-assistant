@@ -114,7 +114,13 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - Migrations: pgvector extension, categories, raw_imports, transactions, conversations, messages
   - `embedding vector(1536)` added via `DB::statement` (no native Blueprint support)
   - HNSW index on `transactions.embedding` via `DB::statement`
-- [ ] **Phase 2:** Eloquent models + CSV import + transaction parser
+- [x] **Phase 2:** Eloquent models + CSV import + transaction parser
+  - Models: Category, RawImport, Transaction, Conversation, Message (PHP8 attribute style)
+  - `CsvParserService`: auto-detects bank (Nubank/Inter/C6/generic), handles BR/EN number formats, multiple delimiters
+  - `ProcessRawImport` job: queued, 3 retries, calls `markProcessing/markDone/markFailed` on RawImport
+  - `ImportController` + routes + `RawImportPolicy`
+  - Wayfinder actions at `@/actions/App/Http/Controllers/ImportController` — use `.url()` when passing to Inertia's `post()`
+  - Page: `resources/js/pages/imports/index.tsx`
 - [ ] **Phase 3:** AI categorization pipeline (queued job)
 - [ ] **Phase 4:** Dashboard with charts
 - [ ] **Phase 5:** pgvector embeddings + RAG setup
@@ -125,5 +131,6 @@ DB_CONNECTION=pgsql  # Required for pgvector
 
 - Project uses Laravel Wayfinder — always prefer Wayfinder-generated types over manual route strings
 - shadcn/ui components are already initialized (`components.json` present)
+- Wayfinder generates **actions** per controller (not routes) — import from `@/actions/App/Http/Controllers/XController`; use `.url()` when Inertia expects a string
 - Tailwind CSS v4 (not v3) — use CSS variables config, not `tailwind.config.js`
 - Auth is fully configured via Fortify — do not rebuild auth
