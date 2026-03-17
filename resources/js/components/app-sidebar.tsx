@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, MessageSquare, Upload } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,25 +14,37 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import ImportController from '@/actions/App/Http/Controllers/ImportController';
+import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: dashboard.url(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Importações de extratos',
+        href: ImportController.index.url(),
+        icon: Upload,
+    },
+    {
+        title: 'Chat com IA',
+        href: ConversationController.index.url(),
+        icon: MessageSquare,
     },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        title: 'Repositório do projeto',
+        href: 'https://github.com/joao951951/finance-assistant',
         icon: FolderGit2,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
+        title: 'Documentação do projeto',
+        href: 'https://www.notion.so/Finance-Assistant-Documenta-o-do-Projeto-3267b0bdfcab81a0bed8e2686413ceba?source=copy_link',
         icon: BookOpen,
     },
 ];
@@ -44,7 +56,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={dashboard.url()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

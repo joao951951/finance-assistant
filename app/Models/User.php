@@ -12,8 +12,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'openai_api_key', 'openai_chat_model', 'openai_embedding_model'])]
+#[Hidden(['password', 'openai_api_key', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -24,8 +24,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'openai_api_key' => 'encrypted',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function hasOpenAiKey(): bool
+    {
+        return ! empty($this->openai_api_key);
     }
 
     public function categories(): HasMany

@@ -86,7 +86,12 @@ class RagService
      */
     public function contextFor(int $userId, string $query, int $limit = self::DEFAULT_LIMIT): string
     {
-        $results = $this->search($userId, $query, $limit);
+        try {
+            $results = $this->search($userId, $query, $limit);
+        } catch (\Throwable) {
+            // If embeddings are unavailable (no API key, network error), proceed without RAG context
+            return 'Contexto de transações indisponível.';
+        }
 
         return $this->buildContext($results);
     }

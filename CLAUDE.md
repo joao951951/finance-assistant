@@ -152,6 +152,31 @@ DB_CONNECTION=pgsql  # Required for pgvector
   - `ImportController` aceita `mimes:csv,txt,pdf` (até 20 MB)
   - Frontend atualizado: `accept=".csv,.txt,.pdf"`
 
+## Per-User OpenAI API Key
+
+Each user configures their own OpenAI credentials in **Settings → API / IA** (`/settings/api`):
+
+| Column | Type | Description |
+|---|---|---|
+| `openai_api_key` | `text` encrypted | Armazenada com cast `encrypted` do Laravel; nunca exposta no JSON |
+| `openai_chat_model` | `string(100)` nullable | Override do modelo GPT (padrão: `gpt-4o`) |
+| `openai_embedding_model` | `string(100)` nullable | Override do modelo de embedding (padrão: `text-embedding-3-small`) |
+
+### Como flui a chave pelo código
+
+- `OpenAiService::forUser(User $user)` e `forUserId(int $id)` — factories estáticas que criam instância com a chave do usuário (fallback para config global)
+- **Jobs** (`CategorizeTransactions`, `GenerateEmbeddings`) — constroem `OpenAiService::forUserId($userId)` + serviços dependentes manualmente (DI não conhece o usuário em tempo de fila)
+- **Controllers** (`ConversationController`, `MessageController`) — constroem `ChatService` manualmente via helper `chatService(Request)` usando `OpenAiService::forUser($request->user())`
+- `User::hasOpenAiKey(): bool` — helper para verificar se a chave está configurada
+- `openai_api_key` está em `#[Hidden]` — nunca aparece em props Inertia; a página recebe apenas `hasApiKey: bool`
+
+### Rotas de configuração
+```
+GET    /settings/api  → ApiController::edit    (name: api.edit)
+PATCH  /settings/api  → ApiController::update  (name: api.update)
+DELETE /settings/api  → ApiController::destroy (name: api.destroy)
+```
+
 ## Notes
 
 - Project uses Laravel Wayfinder — always prefer Wayfinder-generated types over manual route strings
@@ -159,3 +184,4 @@ DB_CONNECTION=pgsql  # Required for pgvector
 - Wayfinder generates **actions** per controller (not routes) — import from `@/actions/App/Http/Controllers/XController`; use `.url()` when Inertia expects a string
 - Tailwind CSS v4 (not v3) — use CSS variables config, not `tailwind.config.js`
 - Auth is fully configured via Fortify — do not rebuild auth
+- `OpenAI` class (openai-php/client) está no namespace raiz — `use OpenAI;` é correto; aviso "unknown class" no IDE é falso positivo

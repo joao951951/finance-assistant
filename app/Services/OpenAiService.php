@@ -2,16 +2,49 @@
 
 namespace App\Services;
 
-use OpenAI;
+use App\Models\User;
+use OpenAI; // root-namespace class from openai-php/client — IDE false positive, works at runtime
 use OpenAI\Client;
 
 class OpenAiService
 {
     private Client $client;
 
-    public function __construct()
+    private string $chatModel;
+
+    private string $embeddingModel;
+
+    public function __construct(
+        ?string $apiKey = null,
+        ?string $chatModel = null,
+        ?string $embeddingModel = null,
+    ) {
+        $this->client         = OpenAI::client($apiKey ?? config('services.openai.api_key', ''));
+        $this->chatModel      = $chatModel ?? config('services.openai.chat_model', 'gpt-4o');
+        $this->embeddingModel = $embeddingModel ?? config('services.openai.embedding_model', 'text-embedding-3-small');
+    }
+
+    /**
+     * Build an instance configured with the given user's API credentials.
+     * Falls back to global config values if the user has not set their own.
+     */
+    public static function forUser(User $user): self
     {
-        $this->client = OpenAI::client(config('services.openai.api_key'));
+        return new self(
+            apiKey:         $user->openai_api_key ?: null,
+            chatModel:      $user->openai_chat_model ?: null,
+            embeddingModel: $user->openai_embedding_model ?: null,
+        );
+    }
+
+    /**
+     * Convenience factory: load user by ID then call forUser().
+     */
+    public static function forUserId(int $userId): self
+    {
+        $user = User::find($userId);
+
+        return $user ? self::forUser($user) : new self();
     }
 
     /**
@@ -49,11 +82,11 @@ class OpenAiService
             PROMPT;
 
         $response = $this->client->chat()->create([
-            'model'       => config('services.openai.chat_model', 'gpt-4o'),
-            'messages'    => [
+            'model'           => $this->chatModel,
+            'messages'        => [
                 ['role' => 'user', 'content' => trim($prompt)],
             ],
-            'temperature' => 0,
+            'temperature'     => 0,
             'response_format' => ['type' => 'json_object'],
         ]);
 
@@ -84,7 +117,7 @@ class OpenAiService
         }
 
         $response = $this->client->embeddings()->create([
-            'model' => config('services.openai.embedding_model', 'text-embedding-3-small'),
+            'model' => $this->embeddingModel,
             'input' => array_values($texts),
         ]);
 
@@ -102,7 +135,7 @@ class OpenAiService
     public function chat(array $messages, float $temperature = 0.7): string
     {
         $response = $this->client->chat()->create([
-            'model'       => config('services.openai.chat_model', 'gpt-4o'),
+            'model'       => $this->chatModel,
             'messages'    => $messages,
             'temperature' => $temperature,
         ]);

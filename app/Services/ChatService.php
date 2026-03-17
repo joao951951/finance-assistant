@@ -47,7 +47,11 @@ class ChatService
         ];
 
         // 4. Get the AI reply
-        $reply = $this->openAi->chat($messages);
+        try {
+            $reply = $this->openAi->chat($messages);
+        } catch (\Throwable) {
+            $reply = 'Desculpe, o serviço de IA está indisponível. Verifique sua chave de API em Configurações → API / IA.';
+        }
 
         // 5. Persist the assistant message
         Message::create([
@@ -58,9 +62,12 @@ class ChatService
 
         // 6. Auto-generate title on the first exchange
         if ($conversation->title === null) {
-            $conversation->update([
-                'title' => $this->generateTitle($userMessage),
-            ]);
+            try {
+                $title = $this->generateTitle($userMessage);
+            } catch (\Throwable) {
+                $title = mb_substr($userMessage, 0, 60);
+            }
+            $conversation->update(['title' => $title]);
         }
 
         return $reply;

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Services\ChatService;
+use App\Services\EmbeddingService;
+use App\Services\OpenAiService;
+use App\Services\RagService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,11 +14,6 @@ use Inertia\Response;
 
 class ConversationController extends Controller
 {
-    public function __construct(private readonly ChatService $chat) {}
-
-    /**
-     * Show the chat page. If a conversation is given, load it with messages.
-     */
     public function index(Request $request): Response
     {
         $conversations = $request->user()
@@ -48,9 +46,6 @@ class ConversationController extends Controller
         ]);
     }
 
-    /**
-     * Create a new conversation and send the first message.
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
@@ -61,7 +56,7 @@ class ConversationController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        $this->chat->reply($conversation, $request->input('message'));
+        $this->chatService($request)->reply($conversation, $request->input('message'));
 
         return redirect()->route('chat.show', $conversation);
     }
@@ -73,5 +68,14 @@ class ConversationController extends Controller
         $conversation->delete();
 
         return redirect()->route('chat.index');
+    }
+
+    private function chatService(Request $request): ChatService
+    {
+        $openAi    = OpenAiService::forUser($request->user());
+        $embedding = new EmbeddingService($openAi);
+        $rag       = new RagService($embedding);
+
+        return new ChatService($openAi, $rag);
     }
 }

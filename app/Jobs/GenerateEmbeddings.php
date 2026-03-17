@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Models\RawImport;
 use App\Services\EmbeddingService;
+use App\Services\OpenAiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -19,8 +21,12 @@ class GenerateEmbeddings implements ShouldQueue
 
     public function __construct(public readonly int $rawImportId) {}
 
-    public function handle(EmbeddingService $service): void
+    public function handle(): void
     {
+        $import  = RawImport::find($this->rawImportId);
+        $openAi  = $import ? OpenAiService::forUserId($import->user_id) : new OpenAiService();
+        $service = new EmbeddingService($openAi);
+
         $service->generateForImport($this->rawImportId);
     }
 }
