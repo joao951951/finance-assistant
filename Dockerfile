@@ -27,8 +27,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
     && cp .env.example .env \
     && sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=/' .env \
-    && APP_KEY="base64:$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | base64 | tr -d '\n')" \
-    && sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env \
+    && sed -i 's|^APP_KEY=.*|APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=|' .env \
     && npm ci \
     && npm run build
 
