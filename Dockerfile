@@ -65,6 +65,9 @@ WORKDIR /var/www/html
 # Copia app + assets compilados + vendor do stage builder
 COPY --from=builder /app .
 
+# Remove o .env do build — runtime usa variáveis de ambiente do Render
+RUN rm -f .env
+
 # Permissões
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
