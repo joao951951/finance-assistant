@@ -44,14 +44,14 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </header>
 
                 {/* Hero */}
-                <main className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 pt-14 text-center">
-                    <p className="mb-5 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                <main className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 pt-20 text-center sm:pt-14">
+                    <p className="mb-4 text-xs font-medium uppercase tracking-widest text-muted-foreground sm:mb-5">
                         Projeto de portfólio
                     </p>
-                    <h1 className="mb-5 max-w-2xl text-4xl font-bold tracking-tight lg:text-6xl">
+                    <h1 className="mb-4 max-w-2xl text-3xl font-bold tracking-tight sm:mb-5 sm:text-4xl lg:text-6xl">
                         Suas finanças com integração à inteligência artificial
                     </h1>
-                    <p className="mb-10 max-w-md text-base text-muted-foreground">
+                    <p className="mb-8 max-w-md text-base text-muted-foreground sm:mb-10">
                         Importe extratos, visualize gastos e converse com um modelo de linguagem
                         que entende os seus próprios dados financeiros.
                     </p>
@@ -85,7 +85,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                     </div>
 
                     {/* Features */}
-                    <div className="mt-24 grid w-full gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-3">
+                    <div className="mt-14 grid w-full gap-px overflow-hidden rounded-xl border bg-border sm:mt-24 sm:grid-cols-3">
                         {[
                             {
                                 title: 'Importação',
@@ -100,7 +100,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 description: 'Converse com um modelo de linguagem usando seus dados como contexto via RAG.',
                             },
                         ].map(({ title, description }) => (
-                            <div key={title} className="bg-background p-8">
+                            <div key={title} className="bg-background p-6 sm:p-8">
                                 <h3 className="mb-2 text-sm font-semibold">{title}</h3>
                                 <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
                             </div>
