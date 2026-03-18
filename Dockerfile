@@ -1,5 +1,5 @@
 # ─── Stage 1: Build (PHP + Node juntos para o Wayfinder funcionar) ───────────
-FROM php:8.3-cli-alpine AS builder
+FROM php:8.4-cli-alpine AS builder
 
 # Node.js + dependências de sistema
 RUN apk add --no-cache \
@@ -32,7 +32,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progre
     && npm run build
 
 # ─── Stage 2: Runtime (PHP-FPM + Nginx) ──────────────────────────────────────
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Dependências de sistema
 RUN apk add --no-cache \
