@@ -23,13 +23,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 
+# Instala dependências PHP (produção)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
 # Prepara .env mínimo para o artisan rodar sem banco
 RUN cp .env.example .env \
     && sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=/' .env \
     && php artisan key:generate --no-interaction
-
-# Instala dependências PHP (produção)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Instala dependências Node + build (Wayfinder chama php artisan internamente)
 RUN npm ci && npm run build
