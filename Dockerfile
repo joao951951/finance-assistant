@@ -11,11 +11,12 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     freetype-dev \
     oniguruma-dev \
+    sqlite-dev \
     unzip
 
 # Extensões PHP mínimas (necessárias para artisan rodar)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_pgsql zip gd bcmath mbstring
+    && docker-php-ext-install pdo_pgsql pdo_sqlite zip gd bcmath mbstring
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -26,8 +27,9 @@ COPY . .
 # Instala deps PHP + prepara .env + build frontend num único layer
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
     && cp .env.example .env \
-    && sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=/' .env \
     && sed -i 's|^APP_KEY=.*|APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=|' .env \
+    && sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env \
+    && echo "DB_DATABASE=/tmp/build.db" >> .env \
     && npm ci \
     && npm run build
 
