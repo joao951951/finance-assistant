@@ -23,16 +23,14 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 
-# Instala dependências PHP (produção)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-# Prepara .env mínimo para o artisan rodar sem banco
-RUN cp .env.example .env \
+# Instala deps PHP + prepara .env + build frontend num único layer
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
+    && cp .env.example .env \
     && sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=/' .env \
-    && php artisan key:generate --no-interaction
-
-# Instala dependências Node + build (Wayfinder chama php artisan internamente)
-RUN npm ci && npm run build
+    && APP_KEY="base64:$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | base64 | tr -d '\n')" \
+    && sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env \
+    && npm ci \
+    && npm run build
 
 # ─── Stage 2: Runtime (PHP-FPM + Nginx) ──────────────────────────────────────
 FROM php:8.3-fpm-alpine
