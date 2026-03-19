@@ -34,12 +34,14 @@ interface CategorySpending {
     total: number;
 }
 
-interface MonthlyTrend {
-    month: string;
-    month_label: string;
+interface TrendPoint {
+    period: string;
+    label: string;
     spent: number;
     income: number;
 }
+
+type TrendPeriod = 'daily' | 'monthly' | 'annual';
 
 interface Transaction {
     id: number;
@@ -59,7 +61,8 @@ interface AvailableMonth {
 interface Props {
     summary: Summary;
     spendingByCategory: CategorySpending[];
-    monthlyTrend: MonthlyTrend[];
+    trend: TrendPoint[];
+    trendPeriod: TrendPeriod;
     recentTransactions: Transaction[];
     selectedMonth: string;
     availableMonths: AvailableMonth[];
@@ -114,22 +117,36 @@ function EmptyState({ message }: { message: string }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+const TREND_OPTIONS: { value: TrendPeriod; label: string }[] = [
+    { value: 'daily',   label: 'Diário'  },
+    { value: 'monthly', label: 'Mensal'  },
+    { value: 'annual',  label: 'Anual'   },
+];
+
 export default function Dashboard({
     summary,
     spendingByCategory,
-    monthlyTrend,
+    trend,
+    trendPeriod,
     recentTransactions,
     selectedMonth,
     availableMonths,
 }: Props) {
     const hasCategories   = spendingByCategory.length > 0;
-    const hasTrend        = monthlyTrend.length > 0;
+    const hasTrend        = trend.length > 0;
     const hasTransactions = recentTransactions.length > 0;
 
     function handleMonthChange(month: string) {
-        router.reload({
-            data: { month },
-            only: ['spendingByCategory', 'selectedMonth'],
+        router.visit(dashboard(), {
+            data: { month, trend: trendPeriod },
+            preserveScroll: true,
+        });
+    }
+
+    function handleTrendChange(period: TrendPeriod) {
+        router.visit(dashboard(), {
+            data: { month: selectedMonth, trend: period },
+            preserveScroll: true,
         });
     }
 
@@ -225,18 +242,33 @@ export default function Dashboard({
                         </CardContent>
                     </Card>
 
-                    {/* Monthly trend — bar chart */}
+                    {/* Trend — bar chart */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Tendência mensal</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
+                            <CardTitle className="text-base">Tendência</CardTitle>
+                            <div className="flex gap-1">
+                                {TREND_OPTIONS.map((opt) => (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() => handleTrendChange(opt.value)}
+                                        className={`rounded-md px-2 py-1 text-xs transition-colors ${
+                                            trendPeriod === opt.value
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-muted-foreground hover:bg-muted'
+                                        }`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
                         </CardHeader>
                         <CardContent>
                             {hasTrend ? (
                                 <ResponsiveContainer width="100%" height={220}>
-                                    <BarChart data={monthlyTrend} barGap={4}>
+                                    <BarChart data={trend} barGap={4}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
                                         <XAxis
-                                            dataKey="month_label"
+                                            dataKey="label"
                                             tick={{ fontSize: 12 }}
                                             axisLine={false}
                                             tickLine={false}

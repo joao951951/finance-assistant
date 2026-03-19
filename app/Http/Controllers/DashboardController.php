@@ -13,33 +13,40 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $userId       = $request->user()->id;
-        $now          = Carbon::now();
-        $startOfMonth = $now->copy()->startOfMonth();
-        $endOfMonth   = $now->copy()->endOfMonth();
+        $userId          = $request->user()->id;
+        $now             = Carbon::now();
+        $startOfMonth    = $now->copy()->startOfMonth();
+        $endOfMonth      = $now->copy()->endOfMonth();
+        $availableMonths = $this->availableMonths($userId);
 
-        // Parse optional ?month=YYYY-MM for the category chart
-        $selectedDate = $this->parseMonthParam($request->query('month'), $now);
+        // Default to the most recent month with data; fall back to current month
+        $defaultMonth = $availableMonths[0]['value'] ?? $now->format('Y-m');
+        $selectedDate = $this->parseMonthParam($request->query('month'), $defaultMonth);
+
+        $trendPeriod = in_array($request->query('trend'), ['daily', 'monthly', 'annual'], true)
+            ? $request->query('trend')
+            : 'monthly';
 
         return Inertia::render('dashboard', [
             'summary'            => $this->summary($userId, $startOfMonth, $endOfMonth),
             'spendingByCategory' => $this->spendingByCategory($userId, $selectedDate->copy()->startOfMonth(), $selectedDate->copy()->endOfMonth()),
-            'monthlyTrend'       => $this->monthlyTrend($userId, $now),
+            'trend'              => $this->trend($userId, $now, $trendPeriod),
+            'trendPeriod'        => $trendPeriod,
             'recentTransactions' => $this->recentTransactions($userId),
             'selectedMonth'      => $selectedDate->format('Y-m'),
-            'availableMonths'    => $this->availableMonths($userId),
+            'availableMonths'    => $availableMonths,
         ]);
     }
 
-    private function parseMonthParam(?string $month, Carbon $fallback): Carbon
+    private function parseMonthParam(?string $month, string $default): Carbon
     {
-        if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
-            try {
-                return Carbon::createFromFormat('Y-m', $month);
-            } catch (\Exception) {}
-        }
+        $target = ($month && preg_match('/^\d{4}-\d{2}$/', $month)) ? $month : $default;
 
-        return $fallback->copy();
+        try {
+            return Carbon::createFromFormat('Y-m', $target)->startOfMonth();
+        } catch (\Exception) {
+            return Carbon::now()->startOfMonth();
+        }
     }
 
     private function summary(int $userId, Carbon $from, Carbon $to): array
@@ -87,27 +94,66 @@ class DashboardController extends Controller
             ->all();
     }
 
-    private function monthlyTrend(int $userId, Carbon $now): array
+    private function trend(int $userId, Carbon $now, string $period): array
     {
-        $from = $now->copy()->subMonths(5)->startOfMonth();
+        return match ($period) {
+            'daily'  => $this->trendDaily($userId, $now),
+            'annual' => $this->trendAnnual($userId),
+            default  => $this->trendMonthly($userId, $now),
+        };
+    }
+
+    private function trendDaily(int $userId, Carbon $now): array
+    {
+        $from = $now->copy()->subDays(29)->startOfDay();
 
         return Transaction::where('user_id', $userId)
             ->where('date', '>=', $from)
             ->selectRaw("
-                TO_CHAR(date, 'YYYY-MM')                                    AS month,
-                TO_CHAR(date, 'Mon')                                        AS month_label,
-                SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END)      AS spent,
-                SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END)      AS income
+                TO_CHAR(date, 'YYYY-MM-DD')                            AS period,
+                TO_CHAR(date, 'DD/MM')                                 AS label,
+                SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END) AS spent,
+                SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) AS income
             ")
-            ->groupByRaw("TO_CHAR(date, 'YYYY-MM'), TO_CHAR(date, 'Mon')")
-            ->orderBy('month')
+            ->groupByRaw("TO_CHAR(date, 'YYYY-MM-DD'), TO_CHAR(date, 'DD/MM')")
+            ->orderBy('period')
             ->get()
-            ->map(fn ($r) => [
-                'month'       => $r->month,
-                'month_label' => $r->month_label,
-                'spent'       => (float) $r->spent,
-                'income'      => (float) $r->income,
-            ])
+            ->map(fn ($r) => ['period' => $r->period, 'label' => $r->label, 'spent' => (float) $r->spent, 'income' => (float) $r->income])
+            ->all();
+    }
+
+    private function trendMonthly(int $userId, Carbon $now): array
+    {
+        $from = $now->copy()->subMonths(11)->startOfMonth();
+
+        return Transaction::where('user_id', $userId)
+            ->where('date', '>=', $from)
+            ->selectRaw("
+                TO_CHAR(date, 'YYYY-MM')                               AS period,
+                TO_CHAR(date, 'Mon/YY')                                AS label,
+                SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END) AS spent,
+                SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) AS income
+            ")
+            ->groupByRaw("TO_CHAR(date, 'YYYY-MM'), TO_CHAR(date, 'Mon/YY')")
+            ->orderBy('period')
+            ->get()
+            ->map(fn ($r) => ['period' => $r->period, 'label' => $r->label, 'spent' => (float) $r->spent, 'income' => (float) $r->income])
+            ->all();
+    }
+
+    private function trendAnnual(int $userId): array
+    {
+        return Transaction::where('user_id', $userId)
+            ->selectRaw("
+                TO_CHAR(date, 'YYYY')                                  AS period,
+                TO_CHAR(date, 'YYYY')                                  AS label,
+                SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END) AS spent,
+                SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) AS income
+            ")
+            ->groupByRaw("TO_CHAR(date, 'YYYY')")
+            ->orderBy('period')
+            ->get()
+            ->map(fn ($r) => ['period' => $r->period, 'label' => $r->label, 'spent' => (float) $r->spent, 'income' => (float) $r->income])
             ->all();
     }
 
