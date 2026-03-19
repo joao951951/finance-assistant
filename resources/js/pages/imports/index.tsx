@@ -84,17 +84,33 @@ function ImportCard({ item }: { item: RawImport }) {
 }
 
 export default function ImportsIndex({ imports: importList }: Props) {
-    const { data, setData, post, processing, errors, reset } = useForm<{ file: File | null }>({
-        file: null,
+    const { data, setData, post, processing, errors, reset } = useForm<{ files: File[] }>({
+        files: [],
     });
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const selected = Array.from(e.target.files ?? []);
+        setData('files', selected);
+    }
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         post(ImportController.store.url(), {
             forceFormData: true,
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                // clear the native file input
+                const input = document.getElementById('file-upload') as HTMLInputElement | null;
+                if (input) input.value = '';
+            },
         });
     }
+
+    const fileLabel = data.files.length === 0
+        ? 'Clique ou arraste os arquivos aqui'
+        : data.files.length === 1
+            ? data.files[0].name
+            : `${data.files.length} arquivos selecionados`;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -106,7 +122,7 @@ export default function ImportsIndex({ imports: importList }: Props) {
                     <CardHeader>
                         <CardTitle>Importar Extrato</CardTitle>
                         <CardDescription>
-                            Envie um extrato CSV ou PDF do seu banco. Suporte a Nubank, Inter, Bradesco, C6 e formatos genéricos.
+                            Envie extratos CSV ou PDF do seu banco. Suporte a Nubank, Inter, Bradesco, C6 e formatos genéricos. Você pode selecionar vários arquivos de uma vez.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -117,23 +133,29 @@ export default function ImportsIndex({ imports: importList }: Props) {
                                     className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 px-6 py-8 text-center transition hover:border-primary/50 hover:bg-accent"
                                 >
                                     <Upload className="mb-2 size-8 text-muted-foreground" />
-                                    <span className="text-sm font-medium">
-                                        {data.file ? data.file.name : 'Clique para selecionar o arquivo'}
-                                    </span>
-                                    <span className="mt-1 text-xs text-muted-foreground">CSV ou PDF · até 20 MB</span>
+                                    <span className="text-sm font-medium">{fileLabel}</span>
+                                    {data.files.length > 1 && (
+                                        <ul className="mt-2 flex flex-col gap-0.5">
+                                            {data.files.map((f, i) => (
+                                                <li key={i} className="text-xs text-muted-foreground">{f.name}</li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                    <span className="mt-2 text-xs text-muted-foreground">CSV ou PDF · até 20 MB por arquivo</span>
                                     <input
                                         id="file-upload"
                                         type="file"
                                         accept=".csv,.txt,.pdf"
+                                        multiple
                                         className="sr-only"
-                                        onChange={(e) => setData('file', e.target.files?.[0] ?? null)}
+                                        onChange={handleFileChange}
                                     />
                                 </label>
-                                {errors.file && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.file}</p>
+                                {errors.files && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.files}</p>
                                 )}
                             </div>
-                            <Button type="submit" disabled={!data.file || processing}>
+                            <Button type="submit" disabled={data.files.length === 0 || processing}>
                                 {processing ? (
                                     <><Loader2 className="mr-2 size-4 animate-spin" /> Enviando...</>
                                 ) : (
