@@ -11,8 +11,15 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
@@ -41,7 +48,6 @@ interface TrendPoint {
     income: number;
 }
 
-type TrendPeriod = 'daily' | 'monthly' | 'annual';
 
 interface Transaction {
     id: number;
@@ -61,8 +67,8 @@ interface AvailableMonth {
 interface Props {
     summary: Summary;
     spendingByCategory: CategorySpending[];
+    monthTransactions: Transaction[];
     trend: TrendPoint[];
-    trendPeriod: TrendPeriod;
     recentTransactions: Transaction[];
     selectedMonth: string;
     availableMonths: AvailableMonth[];
@@ -115,37 +121,55 @@ function EmptyState({ message }: { message: string }) {
     );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+function TransactionList({ transactions }: { transactions: Transaction[] }) {
+    return (
+        <ul className="flex flex-col divide-y text-sm">
+            {transactions.map((t) => (
+                <li key={t.id} className="flex items-center justify-between gap-3 py-2">
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{t.description}</p>
+                        <div className="mt-0.5 flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                                {new Date(t.date).toLocaleDateString('pt-BR')}
+                            </span>
+                            <span
+                                className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium"
+                                style={{ background: t.category_color + '22', color: t.category_color }}
+                            >
+                                {t.category_name}
+                            </span>
+                        </div>
+                    </div>
+                    <span className={`shrink-0 font-semibold ${t.type === 'credit' ? 'text-green-500' : 'text-red-500'}`}>
+                        {t.type === 'credit' ? '+' : '-'}{formatBRL(t.amount)}
+                    </span>
+                </li>
+            ))}
+        </ul>
+    );
+}
 
-const TREND_OPTIONS: { value: TrendPeriod; label: string }[] = [
-    { value: 'daily',   label: 'Diário'  },
-    { value: 'monthly', label: 'Mensal'  },
-    { value: 'annual',  label: 'Anual'   },
-];
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Dashboard({
     summary,
     spendingByCategory,
+    monthTransactions,
     trend,
-    trendPeriod,
     recentTransactions,
     selectedMonth,
     availableMonths,
 }: Props) {
-    const hasCategories   = spendingByCategory.length > 0;
-    const hasTrend        = trend.length > 0;
+    const [txDialogOpen, setTxDialogOpen] = useState(false);
+
+    const hasCategories = spendingByCategory.length > 0;
+    const hasMonthTransactions = monthTransactions.length > 0;
+    const hasTrend = trend.length > 0;
     const hasTransactions = recentTransactions.length > 0;
 
     function handleMonthChange(month: string) {
         router.visit(dashboard(), {
-            data: { month, trend: trendPeriod },
-            preserveScroll: true,
-        });
-    }
-
-    function handleTrendChange(period: TrendPeriod) {
-        router.visit(dashboard(), {
-            data: { month: selectedMonth, trend: period },
+            data: { month },
             preserveScroll: true,
         });
     }
@@ -156,15 +180,31 @@ export default function Dashboard({
 
             <div className="flex flex-col gap-6 p-4">
 
+                {/* Summary — header with month selector */}
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-sm font-semibold text-muted-foreground">{summary.month_label}</h2>
+                    {availableMonths.length > 0 && (
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => handleMonthChange(e.target.value)}
+                            className="rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground outline-none focus:ring-1 focus:ring-ring"
+                        >
+                            {availableMonths.map((m) => (
+                                <option key={m.value} value={m.value}>{m.label}</option>
+                            ))}
+                        </select>
+                    )}
+                </div>
+
                 {/* Summary cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="-mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <SummaryCard
-                        title={`Gastos — ${summary.month_label}`}
+                        title="Gastos"
                         value={formatBRL(summary.total_spent)}
                         valueClass="text-red-500"
                     />
                     <SummaryCard
-                        title={`Receita — ${summary.month_label}`}
+                        title="Receita"
                         value={formatBRL(summary.total_income)}
                         valueClass="text-green-500"
                     />
@@ -176,28 +216,16 @@ export default function Dashboard({
                     <SummaryCard
                         title="Transações"
                         value={summary.transactions_count.toString()}
-                        subtitle={summary.month_label}
                     />
                 </div>
 
-                {/* Charts row */}
+                {/* Category chart + month transactions side by side */}
                 <div className="grid gap-4 lg:grid-cols-2">
 
                     {/* Spending by category — donut */}
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between gap-2">
+                        <CardHeader>
                             <CardTitle className="text-base">Gastos por categoria</CardTitle>
-                            {availableMonths.length > 0 && (
-                                <select
-                                    value={selectedMonth}
-                                    onChange={(e) => handleMonthChange(e.target.value)}
-                                    className="rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground outline-none focus:ring-1 focus:ring-ring"
-                                >
-                                    {availableMonths.map((m) => (
-                                        <option key={m.value} value={m.value}>{m.label}</option>
-                                    ))}
-                                </select>
-                            )}
                         </CardHeader>
                         <CardContent>
                             {hasCategories ? (
@@ -237,70 +265,85 @@ export default function Dashboard({
                                     </ul>
                                 </div>
                             ) : (
-                                <EmptyState message="Nenhuma transação no mês atual" />
+                                <EmptyState message="Nenhuma transação no período selecionado" />
                             )}
                         </CardContent>
                     </Card>
 
-                    {/* Trend — bar chart */}
+                    {/* Latest transactions of the selected month */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between gap-2">
-                            <CardTitle className="text-base">Tendência</CardTitle>
-                            <div className="flex gap-1">
-                                {TREND_OPTIONS.map((opt) => (
-                                    <button
-                                        key={opt.value}
-                                        onClick={() => handleTrendChange(opt.value)}
-                                        className={`rounded-md px-2 py-1 text-xs transition-colors ${
-                                            trendPeriod === opt.value
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'text-muted-foreground hover:bg-muted'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
+                            <CardTitle className="text-base">Últimas transações do mês</CardTitle>
+                            {hasMonthTransactions && (
+                                <Button variant="outline" size="sm" className="text-xs" onClick={() => setTxDialogOpen(true)}>
+                                    Ver mais
+                                </Button>
+                            )}
                         </CardHeader>
                         <CardContent>
-                            {hasTrend ? (
-                                <ResponsiveContainer width="100%" height={220}>
-                                    <BarChart data={trend} barGap={4}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-                                        <XAxis
-                                            dataKey="label"
-                                            tick={{ fontSize: 12 }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <YAxis
-                                            tick={{ fontSize: 11 }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tickFormatter={(v: number) =>
-                                                new Intl.NumberFormat('pt-BR', {
-                                                    notation: 'compact',
-                                                    currency: 'BRL',
-                                                    style: 'currency',
-                                                }).format(v)
-                                            }
-                                        />
-                                        <Tooltip formatter={(v) => formatBRL(Number(v))} />
-                                        <Bar dataKey="income" name="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="spent"  name="Gastos"  fill="#ef4444" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                            {hasMonthTransactions ? (
+                                <TransactionList transactions={monthTransactions.slice(0, 4)} />
                             ) : (
-                                <EmptyState message="Nenhum dado para exibir" />
+                                <EmptyState message="Nenhuma transação no período selecionado" />
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Dialog — all transactions of the selected month */}
+                    <Dialog open={txDialogOpen} onOpenChange={setTxDialogOpen}>
+                        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
+                            <DialogHeader>
+                                <DialogTitle>Transações de {summary.month_label}</DialogTitle>
+                            </DialogHeader>
+                            <TransactionList transactions={monthTransactions} />
+                        </DialogContent>
+                    </Dialog>
+
                 </div>
+
+                {/* Trend — daily breakdown of the selected month */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Tendência do mês</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {hasTrend ? (
+                            <ResponsiveContainer width="100%" height={220}>
+                                <BarChart data={trend} barGap={4}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+                                    <XAxis
+                                        dataKey="label"
+                                        tick={{ fontSize: 12 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 11 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={(v: number) =>
+                                            new Intl.NumberFormat('pt-BR', {
+                                                notation: 'compact',
+                                                currency: 'BRL',
+                                                style: 'currency',
+                                            }).format(v)
+                                        }
+                                    />
+                                    <Tooltip formatter={(v) => formatBRL(Number(v))} />
+                                    <Bar dataKey="income" name="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="spent" name="Gastos" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <EmptyState message="Nenhum dado para exibir" />
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* Recent transactions */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between gap-2">
-                        <CardTitle className="text-base">Transações recentes</CardTitle>
+                        <CardTitle className="text-base">Todas as transações</CardTitle>
                         <Button
                             variant="outline"
                             size="sm"
@@ -341,9 +384,8 @@ export default function Dashboard({
                                                     </span>
                                                 </td>
                                                 <td
-                                                    className={`py-2 text-right font-medium ${
-                                                        t.type === 'credit' ? 'text-green-500' : 'text-red-500'
-                                                    }`}
+                                                    className={`py-2 text-right font-medium ${t.type === 'credit' ? 'text-green-500' : 'text-red-500'
+                                                        }`}
                                                 >
                                                     {t.type === 'credit' ? '+' : '-'}
                                                     {formatBRL(t.amount)}
