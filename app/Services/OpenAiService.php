@@ -12,6 +12,8 @@ class OpenAiService
 {
     private Client $client;
 
+    private string $apiKey;
+
     private string $chatModel;
 
     private string $embeddingModel;
@@ -21,7 +23,7 @@ class OpenAiService
         ?string $chatModel = null,
         ?string $embeddingModel = null,
     ) {
-        $resolvedKey          = $apiKey ?? config('services.openai.api_key', '');
+        $this->apiKey         = $apiKey ?? config('services.openai.api_key', '');
         $this->chatModel      = $chatModel ?? config('services.openai.chat_model', 'gpt-4o');
         $this->embeddingModel = $embeddingModel ?? config('services.openai.embedding_model', 'text-embedding-3-small');
 
@@ -31,16 +33,9 @@ class OpenAiService
         ]);
 
         $this->client = OpenAI::factory()
-            ->withApiKey($resolvedKey)
+            ->withApiKey($this->apiKey)
             ->withHttpClient($guzzle)
             ->make();
-
-        Log::debug('[OpenAI] Service instantiated', [
-            'has_key'         => ! empty($resolvedKey),
-            'key_prefix'      => ! empty($resolvedKey) ? substr($resolvedKey, 0, 10) . '...' : 'none',
-            'chat_model'      => $this->chatModel,
-            'embedding_model' => $this->embeddingModel,
-        ]);
     }
 
     /**
@@ -67,10 +62,20 @@ class OpenAiService
     }
 
     /**
+     * Whether this instance has a usable API key.
+     */
+    public function hasApiKey(): bool
+    {
+        return ! empty($this->apiKey);
+    }
+
+    /**
      * Categorize a batch of transactions in a single API call.
+     * GPT may suggest existing categories OR create new ones.
+     * When it cannot determine the category, it returns "Desconhecido".
      *
      * @param  array<int, array{id: int, description: string}>  $transactions
-     * @param  array<int, string>  $categoryNames
+     * @param  array<int, string>  $categoryNames  Existing category names (hints)
      * @return array<int, string> Map of transaction ID → category name
      */
     public function categorizeTransactions(array $transactions, array $categoryNames): array
@@ -79,7 +84,9 @@ class OpenAiService
             return [];
         }
 
-        $categoriesList = implode(', ', $categoryNames);
+        $categoriesList = empty($categoryNames)
+            ? 'nenhuma categoria definida ainda'
+            : implode(', ', $categoryNames);
 
         $lines = array_map(
             fn ($t) => "{$t['id']}: {$t['description']}",
@@ -88,16 +95,20 @@ class OpenAiService
         $transactionsList = implode("\n", $lines);
 
         $prompt = <<<PROMPT
-            Você é um assistente de finanças pessoais. Categorize cada transação abaixo em uma das categorias fornecidas.
-            Se nenhuma categoria se encaixar, use "Outros".
+            Você é um assistente de finanças pessoais. Categorize cada transação abaixo.
 
-            Categorias disponíveis: {$categoriesList}
+            Categorias já existentes (use quando adequado): {$categoriesList}
+
+            Regras:
+            - Se uma categoria existente se encaixar bem, use ela exatamente como está escrita.
+            - Se nenhuma categoria existente se encaixar, crie um nome de categoria adequado em português (ex: "Alimentação", "Transporte", "Lazer", "Saúde", "Moradia", "Educação", "Vestuário").
+            - Se for impossível determinar a categoria, use exatamente "Desconhecido".
 
             Transações (id: descrição):
             {$transactionsList}
 
             Responda SOMENTE com um JSON no formato: {"id": "categoria", ...}
-            Exemplo: {"1": "Alimentação", "2": "Transporte"}
+            Exemplo: {"1": "Alimentação", "2": "Transporte", "3": "Desconhecido"}
             PROMPT;
 
         Log::info('[OpenAI] categorizeTransactions → request', [

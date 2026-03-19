@@ -8,6 +8,7 @@ use App\Services\CsvParserService;
 use App\Services\PdfParserService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -23,12 +24,31 @@ class ProcessRawImport implements ShouldQueue
 
     public function handle(CsvParserService $csvParser, PdfParserService $pdfParser): void
     {
+        Log::info('[ProcessRawImport] Job iniciado', [
+            'raw_import_id' => $this->rawImport->id,
+            'type'          => $this->rawImport->type,
+            'bank'          => $this->rawImport->bank,
+            'path'          => $this->rawImport->path,
+        ]);
+
         $this->rawImport->markProcessing();
 
-        $path   = Storage::path($this->rawImport->path);
+        $path = Storage::path($this->rawImport->path);
+
+        Log::info('[ProcessRawImport] Caminho do arquivo', [
+            'path'   => $path,
+            'exists' => file_exists($path),
+            'size'   => file_exists($path) ? filesize($path) : null,
+        ]);
+
         $result = $this->rawImport->type === 'pdf'
             ? $pdfParser->parse($path)
             : $csvParser->parse($path);
+
+        Log::info('[ProcessRawImport] Parse concluído', [
+            'bank' => $result['bank'],
+            'rows' => count($result['rows']),
+        ]);
 
         if ($this->rawImport->bank === null && $result['bank'] !== null) {
             $this->rawImport->update(['bank' => $result['bank']]);
@@ -60,6 +80,13 @@ class ProcessRawImport implements ShouldQueue
 
     public function failed(Throwable $e): void
     {
+        Log::error('[ProcessRawImport] Job falhou', [
+            'raw_import_id' => $this->rawImport->id,
+            'error'         => $e->getMessage(),
+            'file'          => $e->getFile(),
+            'line'          => $e->getLine(),
+        ]);
+
         $this->rawImport->markFailed($e->getMessage());
     }
 }

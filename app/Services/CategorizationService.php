@@ -25,21 +25,23 @@ class CategorizationService
         /** @var Collection<int, Category> $categories */
         $categories = Category::where('user_id', $userId)->get();
 
-        if ($categories->isEmpty()) {
-            return;
-        }
-
         $uncategorized = Transaction::where('user_id', $userId)
             ->where('raw_import_id', $rawImportId)
             ->whereNull('category_id')
             ->get();
 
-        // Pass 1: keyword matching (fast, free)
-        $stillUncategorized = $this->applyKeywordMatching($uncategorized, $categories);
+        if ($uncategorized->isEmpty()) {
+            return;
+        }
+
+        // Pass 1: keyword matching (fast, free) — only if user has categories
+        $stillUncategorized = $categories->isNotEmpty()
+            ? $this->applyKeywordMatching($uncategorized, $categories)
+            : $uncategorized;
 
         // Pass 2: AI categorization for what remains
         if ($stillUncategorized->isNotEmpty()) {
-            $this->applyAiCategorization($stillUncategorized, $categories);
+            $this->applyAiCategorization($stillUncategorized, $categories, $userId);
         }
     }
 
@@ -78,10 +80,10 @@ class CategorizationService
      * @param  Collection<int, Transaction>  $transactions
      * @param  Collection<int, Category>  $categories
      */
-    private function applyAiCategorization(Collection $transactions, Collection $categories): void
+    private function applyAiCategorization(Collection $transactions, Collection $categories, int $userId): void
     {
         $categoryNames = $categories->pluck('name')->all();
-        // Build name → id map for quick lookup
+        // Build name → id map (mutable — new categories added during processing)
         $nameToId = $categories->pluck('id', 'name')->all();
 
         // Process in batches to stay within token limits
@@ -94,12 +96,40 @@ class CategorizationService
             $results = $this->openAi->categorizeTransactions($payload, $categoryNames);
 
             foreach ($results as $transactionId => $categoryName) {
-                $categoryId = $nameToId[$categoryName] ?? null;
+                $categoryName = trim($categoryName);
 
-                if ($categoryId !== null) {
-                    Transaction::where('id', $transactionId)->update(['category_id' => $categoryId]);
+                if (! isset($nameToId[$categoryName])) {
+                    // GPT suggested a new (or "Desconhecido") category — create it
+                    $color = $categoryName === 'Desconhecido'
+                        ? '#94a3b8'
+                        : $this->randomColor();
+
+                    $newCategory = Category::firstOrCreate(
+                        ['user_id' => $userId, 'name' => $categoryName],
+                        ['color' => $color, 'keywords' => []],
+                    );
+
+                    $nameToId[$categoryName] = $newCategory->id;
+                    $categoryNames[]         = $categoryName;
                 }
+
+                Transaction::where('id', $transactionId)
+                    ->update(['category_id' => $nameToId[$categoryName]]);
             }
         }
+    }
+
+    /**
+     * Returns a random color from a curated financial palette.
+     */
+    private function randomColor(): string
+    {
+        $colors = [
+            '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
+            '#f97316', '#eab308', '#22c55e', '#14b8a6',
+            '#0ea5e9', '#64748b',
+        ];
+
+        return $colors[array_rand($colors)];
     }
 }

@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['user_id', 'filename', 'type', 'bank', 'path', 'status', 'error_message', 'transactions_count'])]
 class RawImport extends Model
 {
+    protected static function booted(): void
+    {
+        static::deleting(function (RawImport $rawImport) {
+            $rawImport->transactions()->delete();
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
