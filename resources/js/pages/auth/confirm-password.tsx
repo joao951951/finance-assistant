@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ export default function ConfirmPassword() {
         >
             <Head title="Confirmar senha" />
 
-            <Form {...store.form()} resetOnSuccess={['password']}>
+            <Form {...asForm(store())} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
                         <div className="grid gap-2">

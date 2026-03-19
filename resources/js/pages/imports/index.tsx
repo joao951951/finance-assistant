@@ -106,7 +106,7 @@ export default function ImportsIndex({ imports: importList }: Props) {
                     <CardHeader>
                         <CardTitle>Importar Extrato</CardTitle>
                         <CardDescription>
-                            Envie um extrato CSV do seu banco. Suporte a Nubank, Inter, Bradesco, C6 e formatos genéricos.
+                            Envie um extrato CSV ou PDF do seu banco. Suporte a Nubank, Inter, Bradesco, C6 e formatos genéricos.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -120,7 +120,7 @@ export default function ImportsIndex({ imports: importList }: Props) {
                                     <span className="text-sm font-medium">
                                         {data.file ? data.file.name : 'Clique para selecionar o arquivo'}
                                     </span>
-                                    <span className="mt-1 text-xs text-muted-foreground">CSV · até 20 MB</span>
+                                    <span className="mt-1 text-xs text-muted-foreground">CSV ou PDF · até 20 MB</span>
                                     <input
                                         id="file-upload"
                                         type="file"

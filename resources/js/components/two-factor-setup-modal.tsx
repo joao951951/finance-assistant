@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -156,7 +157,7 @@ function TwoFactorVerificationStep({
 
     return (
         <Form
-            {...confirm.form()}
+            {...asForm(confirm())}
             onSuccess={() => onClose()}
             resetOnError
             resetOnSuccess

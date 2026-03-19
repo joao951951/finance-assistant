@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
@@ -54,7 +55,7 @@ export default function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            {...ProfileController.destroy.form()}
+                            {...asForm(ProfileController.destroy())}
                             options={{
                                 preserveScroll: true,
                             }}

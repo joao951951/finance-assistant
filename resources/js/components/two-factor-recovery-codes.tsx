@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
@@ -81,7 +82,7 @@ export default function TwoFactorRecoveryCodes({
 
                     {canRegenerateCodes && (
                         <Form
-                            {...regenerateRecoveryCodes.form()}
+                            {...asForm(regenerateRecoveryCodes())}
                             options={{ preserveScroll: true }}
                             onSuccess={fetchRecoveryCodes}
                         >

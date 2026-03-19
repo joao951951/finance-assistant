@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 import InputError from '@/components/input-error';
@@ -54,7 +55,7 @@ export default function TwoFactorChallenge() {
 
             <div className="space-y-6">
                 <Form
-                    {...store.form()}
+                    {...asForm(store())}
                     className="space-y-4"
                     resetOnError
                     resetOnSuccess={!showRecoveryInput}

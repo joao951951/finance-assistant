@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ export default function ResetPassword({ token, email }: Props) {
             <Head title="Redefinir senha" />
 
             <Form
-                {...update.form()}
+                {...asForm(update())}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
             >

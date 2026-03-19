@@ -1,5 +1,6 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import { ShieldCheck } from 'lucide-react';
 import { useRef, useState } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
@@ -65,7 +66,7 @@ export default function Security({
                     />
 
                     <Form
-                        {...SecurityController.update.form()}
+                        {...asForm(SecurityController.update())}
                         options={{
                             preserveScroll: true,
                         }}
@@ -183,7 +184,7 @@ export default function Security({
                                 </p>
 
                                 <div className="relative inline">
-                                    <Form {...disable.form()}>
+                                    <Form {...asForm(disable())}>
                                         {({ processing }) => (
                                             <Button
                                                 variant="destructive"
@@ -223,7 +224,7 @@ export default function Security({
                                         </Button>
                                     ) : (
                                         <Form
-                                            {...enable.form()}
+                                            {...asForm(enable())}
                                             onSuccess={() =>
                                                 setShowSetupModal(true)
                                             }

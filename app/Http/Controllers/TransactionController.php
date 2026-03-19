@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Transaction;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -48,12 +50,50 @@ class TransactionController extends Controller
             ])
             ->all();
 
+        $categories = Category::where('user_id', $userId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'color'])
+            ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 'color' => $c->color])
+            ->all();
+
         return Inertia::render('transactions/index', [
             'transactions' => $items,
             'current_page' => $page,
             'has_more'     => ($page * self::PER_PAGE) < $total,
             'next_page'    => ($page * self::PER_PAGE) < $total ? $page + 1 : null,
             'total'        => $total,
+            'categories'   => $categories,
         ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'date'        => ['required', 'date'],
+            'description' => ['required', 'string', 'max:255'],
+            'amount'      => ['required', 'numeric', 'min:0.01'],
+            'type'        => ['required', 'in:debit,credit'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+        ]);
+
+        Transaction::create([
+            'user_id'     => $request->user()->id,
+            'date'        => $data['date'],
+            'description' => $data['description'],
+            'amount'      => $data['amount'],
+            'type'        => $data['type'],
+            'category_id' => $data['category_id'] ?? null,
+            'raw_import_id' => null,
+        ]);
+
+        return back();
+    }
+
+    public function destroy(Request $request, Transaction $transaction): RedirectResponse
+    {
+        abort_unless($transaction->user_id === $request->user()->id, 403);
+        $transaction->delete();
+
+        return back();
     }
 }

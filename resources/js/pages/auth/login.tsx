@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { asForm } from '@/wayfinder';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -31,7 +32,7 @@ export default function Login({
             <Head title="Entrar" />
 
             <Form
-                {...store.form()}
+                {...asForm(store())}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
