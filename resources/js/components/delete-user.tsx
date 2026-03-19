@@ -1,5 +1,5 @@
 import { Form } from '@inertiajs/react';
-import { asForm } from '@/wayfinder';
+import { asForm } from '@/lib/form';
 import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';

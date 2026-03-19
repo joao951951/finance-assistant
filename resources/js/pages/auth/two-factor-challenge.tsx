@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { asForm } from '@/wayfinder';
+import { asForm } from '@/lib/form';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 import InputError from '@/components/input-error';

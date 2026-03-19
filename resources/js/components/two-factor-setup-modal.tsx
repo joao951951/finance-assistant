@@ -1,5 +1,5 @@
 import { Form } from '@inertiajs/react';
-import { asForm } from '@/wayfinder';
+import { asForm } from '@/lib/form';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
