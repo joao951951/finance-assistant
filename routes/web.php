@@ -4,6 +4,7 @@ use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -13,6 +14,8 @@ Route::inertia('/', 'welcome', [
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
     Route::get('imports', [ImportController::class, 'index'])->name('imports.index');
     Route::post('imports', [ImportController::class, 'store'])->name('imports.store');

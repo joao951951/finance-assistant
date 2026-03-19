@@ -13,17 +13,33 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $userId = $request->user()->id;
-        $now = Carbon::now();
+        $userId       = $request->user()->id;
+        $now          = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth();
-        $endOfMonth = $now->copy()->endOfMonth();
+        $endOfMonth   = $now->copy()->endOfMonth();
+
+        // Parse optional ?month=YYYY-MM for the category chart
+        $selectedDate = $this->parseMonthParam($request->query('month'), $now);
 
         return Inertia::render('dashboard', [
             'summary'            => $this->summary($userId, $startOfMonth, $endOfMonth),
-            'spendingByCategory' => $this->spendingByCategory($userId, $startOfMonth, $endOfMonth),
+            'spendingByCategory' => $this->spendingByCategory($userId, $selectedDate->copy()->startOfMonth(), $selectedDate->copy()->endOfMonth()),
             'monthlyTrend'       => $this->monthlyTrend($userId, $now),
             'recentTransactions' => $this->recentTransactions($userId),
+            'selectedMonth'      => $selectedDate->format('Y-m'),
+            'availableMonths'    => $this->availableMonths($userId),
         ]);
+    }
+
+    private function parseMonthParam(?string $month, Carbon $fallback): Carbon
+    {
+        if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
+            try {
+                return Carbon::createFromFormat('Y-m', $month);
+            } catch (\Exception) {}
+        }
+
+        return $fallback->copy();
     }
 
     private function summary(int $userId, Carbon $from, Carbon $to): array
@@ -91,6 +107,21 @@ class DashboardController extends Controller
                 'month_label' => $r->month_label,
                 'spent'       => (float) $r->spent,
                 'income'      => (float) $r->income,
+            ])
+            ->all();
+    }
+
+    private function availableMonths(int $userId): array
+    {
+        return Transaction::where('user_id', $userId)
+            ->selectRaw("TO_CHAR(date, 'YYYY-MM') AS value")
+            ->groupByRaw("TO_CHAR(date, 'YYYY-MM')")
+            ->orderByDesc('value')
+            ->limit(24)
+            ->get()
+            ->map(fn ($r) => [
+                'value' => $r->value,
+                'label' => Carbon::createFromFormat('Y-m', $r->value)->translatedFormat('F Y'),
             ])
             ->all();
     }

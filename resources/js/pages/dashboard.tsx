@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     Bar,
     BarChart,
@@ -11,8 +11,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 
@@ -49,11 +51,18 @@ interface Transaction {
     category_color: string;
 }
 
+interface AvailableMonth {
+    value: string;
+    label: string;
+}
+
 interface Props {
     summary: Summary;
     spendingByCategory: CategorySpending[];
     monthlyTrend: MonthlyTrend[];
     recentTransactions: Transaction[];
+    selectedMonth: string;
+    availableMonths: AvailableMonth[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -110,10 +119,19 @@ export default function Dashboard({
     spendingByCategory,
     monthlyTrend,
     recentTransactions,
+    selectedMonth,
+    availableMonths,
 }: Props) {
     const hasCategories   = spendingByCategory.length > 0;
     const hasTrend        = monthlyTrend.length > 0;
     const hasTransactions = recentTransactions.length > 0;
+
+    function handleMonthChange(month: string) {
+        router.reload({
+            data: { month },
+            only: ['spendingByCategory', 'selectedMonth'],
+        });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -150,8 +168,19 @@ export default function Dashboard({
 
                     {/* Spending by category — donut */}
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
                             <CardTitle className="text-base">Gastos por categoria</CardTitle>
+                            {availableMonths.length > 0 && (
+                                <select
+                                    value={selectedMonth}
+                                    onChange={(e) => handleMonthChange(e.target.value)}
+                                    className="rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground outline-none focus:ring-1 focus:ring-ring"
+                                >
+                                    {availableMonths.map((m) => (
+                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                    ))}
+                                </select>
+                            )}
                         </CardHeader>
                         <CardContent>
                             {hasCategories ? (
@@ -238,8 +267,16 @@ export default function Dashboard({
 
                 {/* Recent transactions */}
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between gap-2">
                         <CardTitle className="text-base">Transações recentes</CardTitle>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.visit(TransactionController.index.url())}
+                            className="text-xs"
+                        >
+                            Ver todas
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         {hasTransactions ? (
