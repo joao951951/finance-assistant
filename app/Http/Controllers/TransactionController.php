@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -73,7 +74,7 @@ class TransactionController extends Controller
             'description' => ['required', 'string', 'max:255'],
             'amount'      => ['required', 'numeric', 'min:0.01'],
             'type'        => ['required', 'in:debit,credit'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('user_id', $request->user()->id)],
         ]);
 
         Transaction::create([

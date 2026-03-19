@@ -70,7 +70,7 @@ class ImportControllerTest extends TestCase
         );
 
         $this->actingAs($user)
-            ->post(route('imports.store'), ['file' => $file])
+            ->post(route('imports.store'), ['files' => [$file]])
             ->assertRedirect();
 
         $this->assertDatabaseHas('raw_imports', [
@@ -92,7 +92,7 @@ class ImportControllerTest extends TestCase
         $file = UploadedFile::fake()->create('extrato.pdf', 100, 'application/pdf');
 
         $this->actingAs($user)
-            ->post(route('imports.store'), ['file' => $file])
+            ->post(route('imports.store'), ['files' => [$file]])
             ->assertRedirect();
 
         $this->assertDatabaseHas('raw_imports', [
@@ -101,14 +101,40 @@ class ImportControllerTest extends TestCase
         ]);
     }
 
+    public function test_user_can_upload_multiple_files(): void
+    {
+        Bus::fake();
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $csv  = UploadedFile::fake()->createWithContent('jan.csv', "Data,Desc,Valor\n2026-01-01,A,-10");
+        $pdf  = UploadedFile::fake()->create('fev.pdf', 100, 'application/pdf');
+
+        $this->actingAs($user)
+            ->post(route('imports.store'), ['files' => [$csv, $pdf]])
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('raw_imports', 2);
+        Bus::assertDispatched(ProcessRawImport::class, 2);
+    }
+
+    public function test_upload_rejects_empty_files_array(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('imports.store'), ['files' => []])
+            ->assertSessionHasErrors('files');
+    }
+
     public function test_upload_validates_file_type(): void
     {
         $user = User::factory()->create();
         $file = UploadedFile::fake()->create('malware.exe', 10, 'application/octet-stream');
 
         $this->actingAs($user)
-            ->post(route('imports.store'), ['file' => $file])
-            ->assertSessionHasErrors('file');
+            ->post(route('imports.store'), ['files' => [$file]])
+            ->assertSessionHasErrors('files.0');
     }
 
     public function test_upload_validates_max_size(): void
@@ -118,8 +144,8 @@ class ImportControllerTest extends TestCase
         $file = UploadedFile::fake()->create('big.csv', 21 * 1024, 'text/csv');
 
         $this->actingAs($user)
-            ->post(route('imports.store'), ['file' => $file])
-            ->assertSessionHasErrors('file');
+            ->post(route('imports.store'), ['files' => [$file]])
+            ->assertSessionHasErrors('files.0');
     }
 
     // ─── Destroy ──────────────────────────────────────────────────────────────
