@@ -43,7 +43,7 @@ class ConversationControllerTest extends TestCase
 
     public function test_user_sees_only_their_conversations(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $other = User::factory()->create();
 
         Conversation::create(['user_id' => $user->id,  'title' => 'Mine']);
@@ -61,7 +61,7 @@ class ConversationControllerTest extends TestCase
 
     public function test_show_renders_conversation_with_messages(): void
     {
-        $user         = User::factory()->create();
+        $user = User::factory()->create();
         $conversation = Conversation::create(['user_id' => $user->id, 'title' => 'Test Chat']);
 
         Message::create(['conversation_id' => $conversation->id, 'role' => 'user',      'content' => 'Hello']);
@@ -127,7 +127,7 @@ class ConversationControllerTest extends TestCase
 
     public function test_user_can_delete_their_conversation(): void
     {
-        $user         = User::factory()->create();
+        $user = User::factory()->create();
         $conversation = Conversation::create(['user_id' => $user->id]);
 
         $this->actingAs($user)

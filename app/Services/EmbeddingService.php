@@ -58,7 +58,7 @@ class EmbeddingService
      */
     public function storeEmbedding(int $transactionId, array $vector): void
     {
-        $literal = '[' . implode(',', $vector) . ']';
+        $literal = '['.implode(',', $vector).']';
 
         DB::statement(
             'UPDATE transactions SET embedding = ?::vector WHERE id = ?',

@@ -35,10 +35,10 @@ class RagService
             return [];
         }
 
-        $literal = '[' . implode(',', $vector) . ']';
+        $literal = '['.implode(',', $vector).']';
 
         $rows = DB::select(
-            <<<SQL
+            <<<'SQL'
                 SELECT
                     t.id,
                     t.date::text,
@@ -72,7 +72,7 @@ class RagService
         }
 
         $lines = array_map(function (array $t) {
-            $sign     = $t['type'] === 'credit' ? '+' : '-';
+            $sign = $t['type'] === 'credit' ? '+' : '-';
             $category = $t['category_name'] ?? 'Sem categoria';
 
             return "- {$t['date']} | {$t['description']} | {$sign}R$ {$t['amount']} | {$category}";

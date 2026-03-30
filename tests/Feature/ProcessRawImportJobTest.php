@@ -34,11 +34,11 @@ class ProcessRawImportJobTest extends TestCase
         Storage::disk('local')->put('imports/test.csv', $csv);
 
         $import = RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'test.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/test.csv',
-            'status'   => 'pending',
+            'type' => 'csv',
+            'path' => 'imports/test.csv',
+            'status' => 'pending',
         ]);
 
         (new ProcessRawImport($import))->handle(
@@ -47,21 +47,21 @@ class ProcessRawImportJobTest extends TestCase
         );
 
         $this->assertDatabaseHas('raw_imports', [
-            'id'     => $import->id,
+            'id' => $import->id,
             'status' => 'done',
             'transactions_count' => 2,
         ]);
 
         $this->assertDatabaseHas('transactions', [
-            'user_id'       => $user->id,
+            'user_id' => $user->id,
             'raw_import_id' => $import->id,
-            'description'   => 'iFood',
-            'type'          => 'debit',
+            'description' => 'iFood',
+            'type' => 'debit',
         ]);
 
         $this->assertDatabaseHas('transactions', [
             'user_id' => $user->id,
-            'type'    => 'credit',
+            'type' => 'credit',
         ]);
     }
 
@@ -79,11 +79,11 @@ class ProcessRawImportJobTest extends TestCase
         Storage::disk('local')->put('imports/job.csv', $csv);
 
         $import = RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'job.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/job.csv',
-            'status'   => 'pending',
+            'type' => 'csv',
+            'path' => 'imports/job.csv',
+            'status' => 'pending',
         ]);
 
         (new ProcessRawImport($import))->handle(
@@ -111,11 +111,11 @@ class ProcessRawImportJobTest extends TestCase
         Storage::disk('local')->put('imports/nubank.csv', $csv);
 
         $import = RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'nubank.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/nubank.csv',
-            'status'   => 'pending',
+            'type' => 'csv',
+            'path' => 'imports/nubank.csv',
+            'status' => 'pending',
         ]);
 
         (new ProcessRawImport($import))->handle(
@@ -124,7 +124,7 @@ class ProcessRawImportJobTest extends TestCase
         );
 
         $this->assertDatabaseHas('raw_imports', [
-            'id'   => $import->id,
+            'id' => $import->id,
             'bank' => 'nubank',
         ]);
     }
@@ -144,10 +144,10 @@ class ProcessRawImportJobTest extends TestCase
             'bank' => 'inter',
             'rows' => [
                 [
-                    'date'        => '2026-03-01',
+                    'date' => '2026-03-01',
                     'description' => 'COMPRA DEBITO IFOOD',
-                    'amount'      => 45.90,
-                    'type'        => 'debit',
+                    'amount' => 45.90,
+                    'type' => 'debit',
                 ],
             ],
         ]);
@@ -155,11 +155,11 @@ class ProcessRawImportJobTest extends TestCase
         Storage::disk('local')->put('imports/extrato.pdf', '%PDF-1.4 fake');
 
         $import = RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'extrato.pdf',
-            'type'     => 'pdf',
-            'path'     => 'imports/extrato.pdf',
-            'status'   => 'pending',
+            'type' => 'pdf',
+            'path' => 'imports/extrato.pdf',
+            'status' => 'pending',
         ]);
 
         (new ProcessRawImport($import))->handle(
@@ -168,16 +168,16 @@ class ProcessRawImportJobTest extends TestCase
         );
 
         $this->assertDatabaseHas('raw_imports', [
-            'id'                 => $import->id,
-            'status'             => 'done',
-            'bank'               => 'inter',
+            'id' => $import->id,
+            'status' => 'done',
+            'bank' => 'inter',
             'transactions_count' => 1,
         ]);
 
         $this->assertDatabaseHas('transactions', [
-            'user_id'     => $user->id,
+            'user_id' => $user->id,
             'description' => 'COMPRA DEBITO IFOOD',
-            'type'        => 'debit',
+            'type' => 'debit',
         ]);
     }
 
@@ -188,19 +188,19 @@ class ProcessRawImportJobTest extends TestCase
         $user = User::factory()->create();
 
         $import = RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'bad.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/bad.csv',
-            'status'   => 'pending',
+            'type' => 'csv',
+            'path' => 'imports/bad.csv',
+            'status' => 'pending',
         ]);
 
         $job = new ProcessRawImport($import);
         $job->failed(new \RuntimeException('Disk error'));
 
         $this->assertDatabaseHas('raw_imports', [
-            'id'            => $import->id,
-            'status'        => 'failed',
+            'id' => $import->id,
+            'status' => 'failed',
             'error_message' => 'Disk error',
         ]);
     }

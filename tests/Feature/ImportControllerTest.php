@@ -26,23 +26,23 @@ class ImportControllerTest extends TestCase
 
     public function test_user_sees_their_imports(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $other = User::factory()->create();
 
         RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'mine.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/mine.csv',
-            'status'   => 'done',
+            'type' => 'csv',
+            'path' => 'imports/mine.csv',
+            'status' => 'done',
             'transactions_count' => 5,
         ]);
         RawImport::create([
-            'user_id'  => $other->id,
+            'user_id' => $other->id,
             'filename' => 'theirs.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/theirs.csv',
-            'status'   => 'done',
+            'type' => 'csv',
+            'path' => 'imports/theirs.csv',
+            'status' => 'done',
             'transactions_count' => 3,
         ]);
 
@@ -74,10 +74,10 @@ class ImportControllerTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseHas('raw_imports', [
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'extrato.csv',
-            'type'     => 'csv',
-            'status'   => 'pending',
+            'type' => 'csv',
+            'status' => 'pending',
         ]);
 
         Bus::assertDispatched(ProcessRawImport::class);
@@ -97,7 +97,7 @@ class ImportControllerTest extends TestCase
 
         $this->assertDatabaseHas('raw_imports', [
             'user_id' => $user->id,
-            'type'    => 'pdf',
+            'type' => 'pdf',
         ]);
     }
 
@@ -107,8 +107,8 @@ class ImportControllerTest extends TestCase
         Storage::fake('local');
 
         $user = User::factory()->create();
-        $csv  = UploadedFile::fake()->createWithContent('jan.csv', "Data,Desc,Valor\n2026-01-01,A,-10");
-        $pdf  = UploadedFile::fake()->create('fev.pdf', 100, 'application/pdf');
+        $csv = UploadedFile::fake()->createWithContent('jan.csv', "Data,Desc,Valor\n2026-01-01,A,-10");
+        $pdf = UploadedFile::fake()->create('fev.pdf', 100, 'application/pdf');
 
         $this->actingAs($user)
             ->post(route('imports.store'), ['files' => [$csv, $pdf]])
@@ -154,13 +154,13 @@ class ImportControllerTest extends TestCase
     {
         Storage::fake('local');
 
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $import = RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'old.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/old.csv',
-            'status'   => 'done',
+            'type' => 'csv',
+            'path' => 'imports/old.csv',
+            'status' => 'done',
         ]);
 
         $this->actingAs($user)
@@ -176,11 +176,11 @@ class ImportControllerTest extends TestCase
         $other = User::factory()->create();
 
         $import = RawImport::create([
-            'user_id'  => $owner->id,
+            'user_id' => $owner->id,
             'filename' => 'secret.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/secret.csv',
-            'status'   => 'done',
+            'type' => 'csv',
+            'path' => 'imports/secret.csv',
+            'status' => 'done',
         ]);
 
         $this->actingAs($other)

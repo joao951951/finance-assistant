@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\PdfParserService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use Tests\TestCase;
 
@@ -13,12 +14,12 @@ class PdfParserServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new PdfParserService();
+        $this->parser = new PdfParserService;
     }
 
     // ─── Amount parsing (via reflection on private method) ────────────────────
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('amountProvider')]
+    #[DataProvider('amountProvider')]
     public function test_parse_amount(string $input, ?float $expected): void
     {
         $result = $this->callPrivate('parseAmount', [$input]);
@@ -32,20 +33,20 @@ class PdfParserServiceTest extends TestCase
     public static function amountProvider(): array
     {
         return [
-            'negative BR'            => ['-45,90',      -45.90],
-            'positive BR'            => ['150,00',      150.00],
-            'with thousand sep'      => ['-1.234,56',   -1234.56],
-            'with R$ prefix'         => ['R$ 200,00',   200.00],
-            'negative with R$'       => ['-R$ 99,90',   -99.90],
-            'with spaces'            => ['  -  50,00 ', -50.00],
-            'empty string'           => ['',            null],
-            'just minus'             => ['-',           null],
+            'negative BR' => ['-45,90',      -45.90],
+            'positive BR' => ['150,00',      150.00],
+            'with thousand sep' => ['-1.234,56',   -1234.56],
+            'with R$ prefix' => ['R$ 200,00',   200.00],
+            'negative with R$' => ['-R$ 99,90',   -99.90],
+            'with spaces' => ['  -  50,00 ', -50.00],
+            'empty string' => ['',            null],
+            'just minus' => ['-',           null],
         ];
     }
 
     // ─── Date parsing ─────────────────────────────────────────────────────────
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('dateProvider')]
+    #[DataProvider('dateProvider')]
     public function test_parse_date(string $input, string $expected): void
     {
         $result = $this->callPrivate('parseDate', [$input, 2026, null]);
@@ -55,9 +56,9 @@ class PdfParserServiceTest extends TestCase
     public static function dateProvider(): array
     {
         return [
-            'DD/MM/YYYY'   => ['15/03/2026', '2026-03-15'],
-            'DD/MM/YY'     => ['15/03/26',   '2026-03-15'],
-            'ISO'          => ['2026-03-15', '2026-03-15'],
+            'DD/MM/YYYY' => ['15/03/2026', '2026-03-15'],
+            'DD/MM/YY' => ['15/03/26',   '2026-03-15'],
+            'ISO' => ['2026-03-15', '2026-03-15'],
             'PT month ABR' => ['12 ABR',     '2026-04-12'],
             'PT month MAR' => ['05 MAR',     '2026-03-05'],
             'PT month DEZ' => ['31 DEZ',     '2026-12-31'],
@@ -66,7 +67,7 @@ class PdfParserServiceTest extends TestCase
 
     // ─── Bank detection ───────────────────────────────────────────────────────
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('bankDetectionProvider')]
+    #[DataProvider('bankDetectionProvider')]
     public function test_detect_bank(string $text, ?string $expectedBank): void
     {
         $result = $this->callPrivate('detectBank', [$text]);
@@ -76,11 +77,11 @@ class PdfParserServiceTest extends TestCase
     public static function bankDetectionProvider(): array
     {
         return [
-            'nubank text'   => ['Extrato NUBANK - Fatura',      'nubank'],
-            'inter text'    => ['BANCO INTER S.A. Extrato',     'inter'],
+            'nubank text' => ['Extrato NUBANK - Fatura',      'nubank'],
+            'inter text' => ['BANCO INTER S.A. Extrato',     'inter'],
             'bradesco text' => ['Banco Bradesco S.A.',          'bradesco'],
-            'c6 text'       => ['C6 BANK Extrato Digital',      'c6'],
-            'unknown text'  => ['Banco Genérico XPTO',          null],
+            'c6 text' => ['C6 BANK Extrato Digital',      'c6'],
+            'unknown text' => ['Banco Genérico XPTO',          null],
         ];
     }
 
@@ -103,7 +104,7 @@ class PdfParserServiceTest extends TestCase
         ]);
 
         $this->assertCount(2, $result);
-        $this->assertSame('debit',  $result[0]['type']);
+        $this->assertSame('debit', $result[0]['type']);
         $this->assertSame('credit', $result[1]['type']);
     }
 
@@ -112,7 +113,7 @@ class PdfParserServiceTest extends TestCase
     private function callPrivate(string $method, array $args): mixed
     {
         $ref = new ReflectionClass($this->parser);
-        $m   = $ref->getMethod($method);
+        $m = $ref->getMethod($method);
         $m->setAccessible(true);
 
         return $m->invokeArgs($this->parser, $args);

@@ -25,8 +25,8 @@ class ChatService
         // 1. Persist the user message first
         Message::create([
             'conversation_id' => $conversation->id,
-            'role'            => 'user',
-            'content'         => $userMessage,
+            'role' => 'user',
+            'content' => $userMessage,
         ]);
 
         // 2. Retrieve semantically relevant transactions as RAG context
@@ -56,8 +56,8 @@ class ChatService
         // 5. Persist the assistant message
         Message::create([
             'conversation_id' => $conversation->id,
-            'role'            => 'assistant',
-            'content'         => $reply,
+            'role' => 'assistant',
+            'content' => $reply,
         ]);
 
         // 6. Auto-generate title on the first exchange
@@ -80,7 +80,7 @@ class ChatService
     {
         $title = $this->openAi->chat([
             [
-                'role'    => 'user',
+                'role' => 'user',
                 'content' => "Resuma em até 6 palavras (sem pontuação final) a seguinte pergunta financeira: \"{$firstMessage}\"",
             ],
         ], temperature: 0);

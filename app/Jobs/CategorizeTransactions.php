@@ -31,6 +31,7 @@ class CategorizeTransactions implements ShouldQueue
                 'user_id' => $this->userId,
             ]);
             GenerateEmbeddings::dispatch($this->rawImportId);
+
             return;
         }
 
@@ -40,7 +41,7 @@ class CategorizeTransactions implements ShouldQueue
         } catch (Throwable $e) {
             Log::warning('[CategorizeTransactions] Erro na categorização — ignorado', [
                 'user_id' => $this->userId,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             // Do not rethrow — embeddings must still be generated
         }

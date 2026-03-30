@@ -15,8 +15,8 @@ class ApiController extends Controller
         $user = $request->user();
 
         return Inertia::render('settings/api', [
-            'hasApiKey'      => $user->hasOpenAiKey(),
-            'chatModel'      => $user->openai_chat_model ?? '',
+            'hasApiKey' => $user->hasOpenAiKey(),
+            'chatModel' => $user->openai_chat_model ?? '',
             'embeddingModel' => $user->openai_embedding_model ?? '',
         ]);
     }
@@ -24,8 +24,8 @@ class ApiController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'api_key'         => ['nullable', 'string', 'max:200'],
-            'chat_model'      => ['nullable', 'string', 'max:100'],
+            'api_key' => ['nullable', 'string', 'max:200'],
+            'chat_model' => ['nullable', 'string', 'max:100'],
             'embedding_model' => ['nullable', 'string', 'max:100'],
         ]);
 
@@ -36,7 +36,7 @@ class ApiController extends Controller
             $user->openai_api_key = $validated['api_key'];
         }
 
-        $user->openai_chat_model      = $validated['chat_model'] ?: null;
+        $user->openai_chat_model = $validated['chat_model'] ?: null;
         $user->openai_embedding_model = $validated['embedding_model'] ?: null;
         $user->save();
 
@@ -46,8 +46,8 @@ class ApiController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $request->user()->update([
-            'openai_api_key'      => null,
-            'openai_chat_model'   => null,
+            'openai_api_key' => null,
+            'openai_chat_model' => null,
             'openai_embedding_model' => null,
         ]);
 

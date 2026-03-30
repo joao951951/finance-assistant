@@ -54,7 +54,7 @@ class TransactionControllerTest extends TestCase
 
     public function test_index_paginates_correctly(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $import = $this->makeImport($user);
 
         for ($i = 0; $i < 30; $i++) {
@@ -65,7 +65,7 @@ class TransactionControllerTest extends TestCase
         }
 
         $this->actingAs($user)
-            ->get(route('transactions.index') . '?page=1')
+            ->get(route('transactions.index').'?page=1')
             ->assertInertia(fn ($page) => $page
                 ->where('total', 30)
                 ->where('current_page', 1)
@@ -74,7 +74,7 @@ class TransactionControllerTest extends TestCase
             );
 
         $this->actingAs($user)
-            ->get(route('transactions.index') . '?page=2')
+            ->get(route('transactions.index').'?page=2')
             ->assertInertia(fn ($page) => $page
                 ->where('has_more', false)
                 ->has('transactions', 5)
@@ -102,19 +102,19 @@ class TransactionControllerTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('transactions.store'), [
-                'date'        => '2026-03-15',
+                'date' => '2026-03-15',
                 'description' => 'Supermercado',
-                'amount'      => '125.50',
-                'type'        => 'debit',
+                'amount' => '125.50',
+                'type' => 'debit',
                 'category_id' => null,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('transactions', [
-            'user_id'     => $user->id,
+            'user_id' => $user->id,
             'description' => 'Supermercado',
-            'amount'      => 125.50,
-            'type'        => 'debit',
+            'amount' => 125.50,
+            'type' => 'debit',
         ]);
     }
 
@@ -124,37 +124,37 @@ class TransactionControllerTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('transactions.store'), [
-                'date'        => '2026-03-01',
+                'date' => '2026-03-01',
                 'description' => 'Salário',
-                'amount'      => '5000.00',
-                'type'        => 'credit',
+                'amount' => '5000.00',
+                'type' => 'credit',
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('transactions', [
             'user_id' => $user->id,
-            'type'    => 'credit',
-            'amount'  => 5000.00,
+            'type' => 'credit',
+            'amount' => 5000.00,
         ]);
     }
 
     public function test_user_can_create_transaction_with_category(): void
     {
         $user = User::factory()->create();
-        $cat  = Category::create(['user_id' => $user->id, 'name' => 'Lazer', 'color' => '#3b82f6', 'keywords' => []]);
+        $cat = Category::create(['user_id' => $user->id, 'name' => 'Lazer', 'color' => '#3b82f6', 'keywords' => []]);
 
         $this->actingAs($user)
             ->post(route('transactions.store'), [
-                'date'        => '2026-03-10',
+                'date' => '2026-03-10',
                 'description' => 'Cinema',
-                'amount'      => '35.00',
-                'type'        => 'debit',
+                'amount' => '35.00',
+                'type' => 'debit',
                 'category_id' => $cat->id,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('transactions', [
-            'user_id'     => $user->id,
+            'user_id' => $user->id,
             'category_id' => $cat->id,
         ]);
     }
@@ -191,16 +191,16 @@ class TransactionControllerTest extends TestCase
 
     public function test_store_rejects_category_from_another_user(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $other = User::factory()->create();
-        $cat   = Category::create(['user_id' => $other->id, 'name' => 'Hack', 'color' => '#000', 'keywords' => []]);
+        $cat = Category::create(['user_id' => $other->id, 'name' => 'Hack', 'color' => '#000', 'keywords' => []]);
 
         $this->actingAs($user)
             ->post(route('transactions.store'), [
-                'date'        => '2026-03-01',
+                'date' => '2026-03-01',
                 'description' => 'Tentativa',
-                'amount'      => '10',
-                'type'        => 'debit',
+                'amount' => '10',
+                'type' => 'debit',
                 'category_id' => $cat->id,
             ])
             ->assertSessionHasErrors('category_id');
@@ -210,9 +210,9 @@ class TransactionControllerTest extends TestCase
 
     public function test_user_can_delete_their_transaction(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $import = $this->makeImport($user);
-        $tx     = Transaction::create([
+        $tx = Transaction::create([
             'user_id' => $user->id, 'raw_import_id' => $import->id,
             'date' => '2026-03-01', 'description' => 'To delete', 'amount' => 50, 'type' => 'debit',
         ]);
@@ -245,11 +245,11 @@ class TransactionControllerTest extends TestCase
     private function makeImport(User $user): RawImport
     {
         return RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'test.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/test.csv',
-            'status'   => 'done',
+            'type' => 'csv',
+            'path' => 'imports/test.csv',
+            'status' => 'done',
         ]);
     }
 }

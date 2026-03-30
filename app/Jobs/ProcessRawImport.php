@@ -26,9 +26,9 @@ class ProcessRawImport implements ShouldQueue
     {
         Log::info('[ProcessRawImport] Job iniciado', [
             'raw_import_id' => $this->rawImport->id,
-            'type'          => $this->rawImport->type,
-            'bank'          => $this->rawImport->bank,
-            'path'          => $this->rawImport->path,
+            'type' => $this->rawImport->type,
+            'bank' => $this->rawImport->bank,
+            'path' => $this->rawImport->path,
         ]);
 
         $this->rawImport->markProcessing();
@@ -36,9 +36,9 @@ class ProcessRawImport implements ShouldQueue
         $path = Storage::path($this->rawImport->path);
 
         Log::info('[ProcessRawImport] Caminho do arquivo', [
-            'path'   => $path,
+            'path' => $path,
             'exists' => file_exists($path),
-            'size'   => file_exists($path) ? filesize($path) : null,
+            'size' => file_exists($path) ? filesize($path) : null,
         ]);
 
         $result = $this->rawImport->type === 'pdf'
@@ -54,20 +54,20 @@ class ProcessRawImport implements ShouldQueue
             $this->rawImport->update(['bank' => $result['bank']]);
         }
 
-        $count       = 0;
-        $userId      = $this->rawImport->user_id;
+        $count = 0;
+        $userId = $this->rawImport->user_id;
         $rawImportId = $this->rawImport->id;
 
         foreach ($result['rows'] as $row) {
             Transaction::create([
-                'user_id'           => $userId,
-                'raw_import_id'     => $rawImportId,
-                'date'              => $row['date'],
-                'description'       => $row['description'],
+                'user_id' => $userId,
+                'raw_import_id' => $rawImportId,
+                'date' => $row['date'],
+                'description' => $row['description'],
                 'description_clean' => $csvParser->cleanDescription($row['description']),
-                'amount'            => $row['amount'],
-                'type'              => $row['type'],
-                'bank'              => $this->rawImport->bank,
+                'amount' => $row['amount'],
+                'type' => $row['type'],
+                'bank' => $this->rawImport->bank,
             ]);
 
             $count++;
@@ -82,9 +82,9 @@ class ProcessRawImport implements ShouldQueue
     {
         Log::error('[ProcessRawImport] Job falhou', [
             'raw_import_id' => $this->rawImport->id,
-            'error'         => $e->getMessage(),
-            'file'          => $e->getFile(),
-            'line'          => $e->getLine(),
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
         ]);
 
         $this->rawImport->markFailed($e->getMessage());

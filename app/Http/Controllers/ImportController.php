@@ -27,30 +27,30 @@ class ImportController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'files'   => ['required', 'array', 'min:1'],
+            'files' => ['required', 'array', 'min:1'],
             'files.*' => ['required', 'file', 'mimes:csv,txt,pdf', 'max:20480'],
         ]);
 
         foreach ($request->file('files') as $file) {
             $extension = strtolower($file->getClientOriginalExtension());
-            $type      = $extension === 'pdf' ? 'pdf' : 'csv';
-            $path      = $file->store('imports/' . $request->user()->id, 'local');
+            $type = $extension === 'pdf' ? 'pdf' : 'csv';
+            $path = $file->store('imports/'.$request->user()->id, 'local');
 
             $rawImport = RawImport::create([
-                'user_id'  => $request->user()->id,
+                'user_id' => $request->user()->id,
                 'filename' => $file->getClientOriginalName(),
-                'type'     => $type,
-                'path'     => $path,
-                'status'   => 'pending',
+                'type' => $type,
+                'path' => $path,
+                'status' => 'pending',
             ]);
 
             ProcessRawImport::dispatch($rawImport);
         }
 
         $count = count($request->file('files'));
-        $msg   = $count === 1 ? 'Arquivo enviado!' : "{$count} arquivos enviados!";
+        $msg = $count === 1 ? 'Arquivo enviado!' : "{$count} arquivos enviados!";
 
-        return back()->with('success', $msg . ' O processamento iniciará em instantes.');
+        return back()->with('success', $msg.' O processamento iniciará em instantes.');
     }
 
     public function destroy(Request $request, RawImport $rawImport): RedirectResponse

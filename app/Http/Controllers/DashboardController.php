@@ -13,24 +13,24 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $userId          = $request->user()->id;
-        $now             = Carbon::now();
+        $userId = $request->user()->id;
+        $now = Carbon::now();
         $availableMonths = $this->availableMonths($userId);
 
         // Default to the most recent month with data; fall back to current month
         $defaultMonth = $availableMonths[0]['value'] ?? $now->format('Y-m');
         $selectedDate = $this->parseMonthParam($request->query('month'), $defaultMonth);
-        $from         = $selectedDate->copy()->startOfMonth();
-        $to           = $selectedDate->copy()->endOfMonth();
+        $from = $selectedDate->copy()->startOfMonth();
+        $to = $selectedDate->copy()->endOfMonth();
 
         return Inertia::render('dashboard', [
-            'summary'            => $this->summary($userId, $from, $to),
+            'summary' => $this->summary($userId, $from, $to),
             'spendingByCategory' => $this->spendingByCategory($userId, $from, $to),
-            'monthTransactions'  => $this->monthTransactions($userId, $from, $to),
-            'trend'              => $this->trend($userId, $from, $to),
+            'monthTransactions' => $this->monthTransactions($userId, $from, $to),
+            'trend' => $this->trend($userId, $from, $to),
             'recentTransactions' => $this->recentTransactions($userId),
-            'selectedMonth'      => $selectedDate->format('Y-m'),
-            'availableMonths'    => $availableMonths,
+            'selectedMonth' => $selectedDate->format('Y-m'),
+            'availableMonths' => $availableMonths,
         ]);
     }
 
@@ -56,15 +56,15 @@ class DashboardController extends Controller
             ")
             ->first();
 
-        $spent  = (float) ($rows->total_spent ?? 0);
+        $spent = (float) ($rows->total_spent ?? 0);
         $income = (float) ($rows->total_income ?? 0);
 
         return [
-            'total_spent'         => $spent,
-            'total_income'        => $income,
-            'balance'             => $income - $spent,
-            'transactions_count'  => (int) ($rows->transactions_count ?? 0),
-            'month_label'         => $from->translatedFormat('F Y'),
+            'total_spent' => $spent,
+            'total_income' => $income,
+            'balance' => $income - $spent,
+            'transactions_count' => (int) ($rows->transactions_count ?? 0),
+            'month_label' => $from->translatedFormat('F Y'),
         ];
     }
 
@@ -83,7 +83,7 @@ class DashboardController extends Controller
             ->orderByDesc('total')
             ->get()
             ->map(fn ($r) => [
-                'name'  => $r->name,
+                'name' => $r->name,
                 'color' => $r->color,
                 'total' => (float) $r->total,
             ])
@@ -108,8 +108,8 @@ class DashboardController extends Controller
 
         return array_map(fn ($r) => [
             'period' => $r->period,
-            'label'  => $r->label,
-            'spent'  => (float) $r->spent,
+            'label' => $r->label,
+            'spent' => (float) $r->spent,
             'income' => (float) $r->income,
         ], $rows);
     }
@@ -148,12 +148,12 @@ class DashboardController extends Controller
             ->orderByDesc('transactions.id')
             ->get()
             ->map(fn ($r) => [
-                'id'             => $r->id,
-                'date'           => $r->date,
-                'description'    => $r->description_clean ?? $r->description,
-                'amount'         => (float) $r->amount,
-                'type'           => $r->type,
-                'category_name'  => $r->category_name,
+                'id' => $r->id,
+                'date' => $r->date,
+                'description' => $r->description_clean ?? $r->description,
+                'amount' => (float) $r->amount,
+                'type' => $r->type,
+                'category_name' => $r->category_name,
                 'category_color' => $r->category_color,
             ])
             ->all();
@@ -178,12 +178,12 @@ class DashboardController extends Controller
             ->limit(10)
             ->get()
             ->map(fn ($r) => [
-                'id'             => $r->id,
-                'date'           => $r->date,
-                'description'    => $r->description_clean ?? $r->description,
-                'amount'         => (float) $r->amount,
-                'type'           => $r->type,
-                'category_name'  => $r->category_name,
+                'id' => $r->id,
+                'date' => $r->date,
+                'description' => $r->description_clean ?? $r->description,
+                'amount' => (float) $r->amount,
+                'type' => $r->type,
+                'category_name' => $r->category_name,
                 'category_color' => $r->category_color,
             ])
             ->all();

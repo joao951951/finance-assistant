@@ -18,7 +18,7 @@ class TransactionController extends Controller
     public function index(Request $request): Response
     {
         $userId = $request->user()->id;
-        $page   = max(1, (int) $request->query('page', 1));
+        $page = max(1, (int) $request->query('page', 1));
 
         $query = Transaction::where('transactions.user_id', $userId)
             ->leftJoin('categories', 'categories.id', '=', 'transactions.category_id')
@@ -41,12 +41,12 @@ class TransactionController extends Controller
             ->limit(self::PER_PAGE)
             ->get()
             ->map(fn ($r) => [
-                'id'             => $r->id,
-                'date'           => $r->date,
-                'description'    => $r->description_clean ?? $r->description,
-                'amount'         => (float) $r->amount,
-                'type'           => $r->type,
-                'category_name'  => $r->category_name,
+                'id' => $r->id,
+                'date' => $r->date,
+                'description' => $r->description_clean ?? $r->description,
+                'amount' => (float) $r->amount,
+                'type' => $r->type,
+                'category_name' => $r->category_name,
                 'category_color' => $r->category_color,
             ])
             ->all();
@@ -60,29 +60,29 @@ class TransactionController extends Controller
         return Inertia::render('transactions/index', [
             'transactions' => $items,
             'current_page' => $page,
-            'has_more'     => ($page * self::PER_PAGE) < $total,
-            'next_page'    => ($page * self::PER_PAGE) < $total ? $page + 1 : null,
-            'total'        => $total,
-            'categories'   => $categories,
+            'has_more' => ($page * self::PER_PAGE) < $total,
+            'next_page' => ($page * self::PER_PAGE) < $total ? $page + 1 : null,
+            'total' => $total,
+            'categories' => $categories,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'date'        => ['required', 'date'],
+            'date' => ['required', 'date'],
             'description' => ['required', 'string', 'max:255'],
-            'amount'      => ['required', 'numeric', 'min:0.01'],
-            'type'        => ['required', 'in:debit,credit'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'type' => ['required', 'in:debit,credit'],
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('user_id', $request->user()->id)],
         ]);
 
         Transaction::create([
-            'user_id'     => $request->user()->id,
-            'date'        => $data['date'],
+            'user_id' => $request->user()->id,
+            'date' => $data['date'],
             'description' => $data['description'],
-            'amount'      => $data['amount'],
-            'type'        => $data['type'],
+            'amount' => $data['amount'],
+            'type' => $data['type'],
             'category_id' => $data['category_id'] ?? null,
             'raw_import_id' => null,
         ]);

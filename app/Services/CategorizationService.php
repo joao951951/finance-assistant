@@ -89,7 +89,7 @@ class CategorizationService
         // Process in batches to stay within token limits
         foreach ($transactions->chunk(self::BATCH_SIZE) as $batch) {
             $payload = $batch->map(fn (Transaction $t) => [
-                'id'          => $t->id,
+                'id' => $t->id,
                 'description' => $t->description_clean ?? $t->description,
             ])->values()->all();
 
@@ -110,7 +110,7 @@ class CategorizationService
                     );
 
                     $nameToId[$categoryName] = $newCategory->id;
-                    $categoryNames[]         = $categoryName;
+                    $categoryNames[] = $categoryName;
                 }
 
                 Transaction::where('id', $transactionId)

@@ -20,10 +20,10 @@ class MessageController extends Controller
             'message' => ['required', 'string', 'max:2000'],
         ]);
 
-        $openAi    = OpenAiService::forUser($request->user());
+        $openAi = OpenAiService::forUser($request->user());
         $embedding = new EmbeddingService($openAi);
-        $rag       = new RagService($embedding);
-        $chat      = new ChatService($openAi, $rag);
+        $rag = new RagService($embedding);
+        $chat = new ChatService($openAi, $rag);
 
         $chat->reply($conversation, $request->input('message'));
 

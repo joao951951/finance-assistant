@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Services\CsvParserService;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CsvParserServiceTest extends TestCase
@@ -13,7 +12,7 @@ class CsvParserServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new CsvParserService();
+        $this->parser = new CsvParserService;
     }
 
     // ─── Nubank CSV ───────────────────────────────────────────────────────────
@@ -127,7 +126,7 @@ class CsvParserServiceTest extends TestCase
 
     private function writeTempCsv(string $content): string
     {
-        $path = tempnam(sys_get_temp_dir(), 'csv_test_') . '.csv';
+        $path = tempnam(sys_get_temp_dir(), 'csv_test_').'.csv';
         file_put_contents($path, $content);
 
         return $path;

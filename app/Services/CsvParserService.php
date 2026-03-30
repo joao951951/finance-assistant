@@ -14,17 +14,17 @@ class CsvParserService
      */
     private const BANK_SIGNATURES = [
         'nubank' => ['data', 'categoria', 'título', 'valor'],
-        'inter'  => ['data lançamento', 'histórico', 'valor'],
-        'c6'     => ['data', 'descrição', 'valor', 'parcela'],
+        'inter' => ['data lançamento', 'histórico', 'valor'],
+        'c6' => ['data', 'descrição', 'valor', 'parcela'],
     ];
 
     /**
      * Column name aliases to normalize to internal keys.
      */
     private const COLUMN_MAP = [
-        'date'        => ['data', 'data lançamento', 'date', 'data pagamento'],
+        'date' => ['data', 'data lançamento', 'date', 'data pagamento'],
         'description' => ['descrição', 'título', 'histórico', 'description', 'memo', 'detalhes'],
-        'amount'      => ['valor', 'amount', 'value'],
+        'amount' => ['valor', 'amount', 'value'],
     ];
 
     /**
@@ -65,9 +65,9 @@ class CsvParserService
      */
     private function normalizeRecord(array $record, array $columnMap): ?array
     {
-        $date        = $this->extractValue($record, $columnMap['date'] ?? null);
+        $date = $this->extractValue($record, $columnMap['date'] ?? null);
         $description = $this->extractValue($record, $columnMap['description'] ?? null);
-        $rawAmount   = $this->extractValue($record, $columnMap['amount'] ?? null);
+        $rawAmount = $this->extractValue($record, $columnMap['amount'] ?? null);
 
         if ($date === null || $description === null || $rawAmount === null) {
             return null;
@@ -80,10 +80,10 @@ class CsvParserService
         }
 
         return [
-            'date'        => $this->parseDate($date),
+            'date' => $this->parseDate($date),
             'description' => trim($description),
-            'amount'      => abs($amount),
-            'type'        => $amount >= 0 ? 'credit' : 'debit',
+            'amount' => abs($amount),
+            'type' => $amount >= 0 ? 'credit' : 'debit',
         ];
     }
 
@@ -182,7 +182,7 @@ class CsvParserService
             return ',';
         }
 
-        $commas     = substr_count($line, ',');
+        $commas = substr_count($line, ',');
         $semicolons = substr_count($line, ';');
 
         return $semicolons > $commas ? ';' : ',';

@@ -22,9 +22,9 @@ class ConversationController extends Controller
             ->get(['id', 'title', 'created_at']);
 
         return Inertia::render('chat/index', [
-            'conversations'      => $conversations,
+            'conversations' => $conversations,
             'activeConversation' => null,
-            'messages'           => [],
+            'messages' => [],
         ]);
     }
 
@@ -38,9 +38,9 @@ class ConversationController extends Controller
             ->get(['id', 'title', 'created_at']);
 
         return Inertia::render('chat/index', [
-            'conversations'      => $conversations,
+            'conversations' => $conversations,
             'activeConversation' => $conversation->only('id', 'title'),
-            'messages'           => $conversation->messages()
+            'messages' => $conversation->messages()
                 ->orderBy('id')
                 ->get(['id', 'role', 'content', 'created_at']),
         ]);
@@ -72,9 +72,9 @@ class ConversationController extends Controller
 
     private function chatService(Request $request): ChatService
     {
-        $openAi    = OpenAiService::forUser($request->user());
+        $openAi = OpenAiService::forUser($request->user());
         $embedding = new EmbeddingService($openAi);
-        $rag       = new RagService($embedding);
+        $rag = new RagService($embedding);
 
         return new ChatService($openAi, $rag);
     }

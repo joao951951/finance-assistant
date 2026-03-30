@@ -23,12 +23,12 @@ class OpenAiService
         ?string $chatModel = null,
         ?string $embeddingModel = null,
     ) {
-        $this->apiKey         = $apiKey ?? config('services.openai.api_key', '');
-        $this->chatModel      = $chatModel ?? config('services.openai.chat_model', 'gpt-4o');
+        $this->apiKey = $apiKey ?? config('services.openai.api_key', '');
+        $this->chatModel = $chatModel ?? config('services.openai.chat_model', 'gpt-4o');
         $this->embeddingModel = $embeddingModel ?? config('services.openai.embedding_model', 'text-embedding-3-small');
 
-        $certPath  = storage_path('cacert.pem');
-        $guzzle    = new GuzzleClient([
+        $certPath = storage_path('cacert.pem');
+        $guzzle = new GuzzleClient([
             'verify' => file_exists($certPath) ? $certPath : true,
         ]);
 
@@ -45,8 +45,8 @@ class OpenAiService
     public static function forUser(User $user): self
     {
         return new self(
-            apiKey:         $user->openai_api_key ?: null,
-            chatModel:      $user->openai_chat_model ?: null,
+            apiKey: $user->openai_api_key ?: null,
+            chatModel: $user->openai_chat_model ?: null,
             embeddingModel: $user->openai_embedding_model ?: null,
         );
     }
@@ -58,7 +58,7 @@ class OpenAiService
     {
         $user = User::find($userId);
 
-        return $user ? self::forUser($user) : new self();
+        return $user ? self::forUser($user) : new self;
     }
 
     /**
@@ -112,7 +112,7 @@ class OpenAiService
             PROMPT;
 
         Log::info('[OpenAI] categorizeTransactions → request', [
-            'model'             => $this->chatModel,
+            'model' => $this->chatModel,
             'transactions_count' => count($transactions),
         ]);
 
@@ -120,29 +120,29 @@ class OpenAiService
 
         try {
             $response = $this->client->chat()->create([
-                'model'           => $this->chatModel,
-                'messages'        => [
+                'model' => $this->chatModel,
+                'messages' => [
                     ['role' => 'user', 'content' => trim($prompt)],
                 ],
-                'temperature'     => 0,
+                'temperature' => 0,
                 'response_format' => ['type' => 'json_object'],
             ]);
         } catch (\Throwable $e) {
             Log::error('[OpenAI] categorizeTransactions → FAILED', [
-                'error'   => $e->getMessage(),
-                'elapsed' => round(microtime(true) - $start, 3) . 's',
+                'error' => $e->getMessage(),
+                'elapsed' => round(microtime(true) - $start, 3).'s',
             ]);
             throw $e;
         }
 
         $elapsed = round(microtime(true) - $start, 3);
-        $usage   = $response->usage;
+        $usage = $response->usage;
 
         Log::info('[OpenAI] categorizeTransactions → response', [
-            'elapsed'          => $elapsed . 's',
-            'prompt_tokens'    => $usage?->promptTokens,
+            'elapsed' => $elapsed.'s',
+            'prompt_tokens' => $usage?->promptTokens,
             'completion_tokens' => $usage?->completionTokens,
-            'total_tokens'     => $usage?->totalTokens,
+            'total_tokens' => $usage?->totalTokens,
         ]);
 
         $content = $response->choices[0]->message->content ?? '{}';
@@ -163,7 +163,7 @@ class OpenAiService
      * Generate embeddings for a batch of texts (up to 2048 inputs per call).
      *
      * @param  array<int, string>  $texts
-     * @return array<int, float[]>  Ordered list of embedding vectors
+     * @return array<int, float[]> Ordered list of embedding vectors
      */
     public function embeddings(array $texts): array
     {
@@ -185,19 +185,19 @@ class OpenAiService
             ]);
         } catch (\Throwable $e) {
             Log::error('[OpenAI] embeddings → FAILED', [
-                'error'   => $e->getMessage(),
-                'elapsed' => round(microtime(true) - $start, 3) . 's',
+                'error' => $e->getMessage(),
+                'elapsed' => round(microtime(true) - $start, 3).'s',
             ]);
             throw $e;
         }
 
         $elapsed = round(microtime(true) - $start, 3);
-        $usage   = $response->usage;
+        $usage = $response->usage;
 
         Log::info('[OpenAI] embeddings → response', [
-            'elapsed'       => $elapsed . 's',
+            'elapsed' => $elapsed.'s',
             'prompt_tokens' => $usage?->promptTokens,
-            'total_tokens'  => $usage?->totalTokens,
+            'total_tokens' => $usage?->totalTokens,
             'vectors_count' => count($response->embeddings),
         ]);
 
@@ -215,35 +215,35 @@ class OpenAiService
     public function chat(array $messages, float $temperature = 0.7): string
     {
         Log::info('[OpenAI] chat → request', [
-            'model'           => $this->chatModel,
-            'messages_count'  => count($messages),
-            'temperature'     => $temperature,
+            'model' => $this->chatModel,
+            'messages_count' => count($messages),
+            'temperature' => $temperature,
         ]);
 
         $start = microtime(true);
 
         try {
             $response = $this->client->chat()->create([
-                'model'       => $this->chatModel,
-                'messages'    => $messages,
+                'model' => $this->chatModel,
+                'messages' => $messages,
                 'temperature' => $temperature,
             ]);
         } catch (\Throwable $e) {
             Log::error('[OpenAI] chat → FAILED', [
-                'error'   => $e->getMessage(),
-                'elapsed' => round(microtime(true) - $start, 3) . 's',
+                'error' => $e->getMessage(),
+                'elapsed' => round(microtime(true) - $start, 3).'s',
             ]);
             throw $e;
         }
 
         $elapsed = round(microtime(true) - $start, 3);
-        $usage   = $response->usage;
+        $usage = $response->usage;
 
         Log::info('[OpenAI] chat → response', [
-            'elapsed'           => $elapsed . 's',
-            'prompt_tokens'     => $usage?->promptTokens,
+            'elapsed' => $elapsed.'s',
+            'prompt_tokens' => $usage?->promptTokens,
             'completion_tokens' => $usage?->completionTokens,
-            'total_tokens'      => $usage?->totalTokens,
+            'total_tokens' => $usage?->totalTokens,
         ]);
 
         return $response->choices[0]->message->content ?? '';

@@ -42,7 +42,7 @@ class DashboardControllerTest extends TestCase
 
     public function test_summary_reflects_current_month_transactions(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $import = $this->makeImport($user);
 
         Transaction::create([
@@ -74,13 +74,13 @@ class DashboardControllerTest extends TestCase
 
     public function test_spending_by_category_groups_correctly(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $import = $this->makeImport($user);
 
         $cat = Category::create([
-            'user_id'  => $user->id,
-            'name'     => 'Alimentação',
-            'color'    => '#f97316',
+            'user_id' => $user->id,
+            'name' => 'Alimentação',
+            'color' => '#f97316',
             'keywords' => [],
         ]);
 
@@ -108,7 +108,7 @@ class DashboardControllerTest extends TestCase
 
     public function test_recent_transactions_returns_at_most_ten(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $import = $this->makeImport($user);
 
         for ($i = 0; $i < 15; $i++) {
@@ -126,7 +126,7 @@ class DashboardControllerTest extends TestCase
 
     public function test_user_only_sees_their_own_data(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $other = User::factory()->create();
         $import = $this->makeImport($other);
 
@@ -147,11 +147,11 @@ class DashboardControllerTest extends TestCase
     private function makeImport(User $user): RawImport
     {
         return RawImport::create([
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => 'test.csv',
-            'type'     => 'csv',
-            'path'     => 'imports/test.csv',
-            'status'   => 'done',
+            'type' => 'csv',
+            'path' => 'imports/test.csv',
+            'status' => 'done',
         ]);
     }
 }

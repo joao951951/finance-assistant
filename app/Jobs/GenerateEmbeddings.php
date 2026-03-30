@@ -23,8 +23,8 @@ class GenerateEmbeddings implements ShouldQueue
 
     public function handle(): void
     {
-        $import  = RawImport::find($this->rawImportId);
-        $openAi  = $import ? OpenAiService::forUserId($import->user_id) : new OpenAiService();
+        $import = RawImport::find($this->rawImportId);
+        $openAi = $import ? OpenAiService::forUserId($import->user_id) : new OpenAiService;
         $service = new EmbeddingService($openAi);
 
         $service->generateForImport($this->rawImportId);
