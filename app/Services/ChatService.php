@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\User;
 
 class ChatService
 {
@@ -16,6 +17,15 @@ class ChatService
         private readonly OpenAiService $openAi,
         private readonly RagService $rag,
     ) {}
+
+    public static function forUser(User $user): self
+    {
+        $openAi = OpenAiService::forUser($user);
+        $embedding = new EmbeddingService($openAi);
+        $rag = new RagService($embedding);
+
+        return new self($openAi, $rag);
+    }
 
     /**
      * Send a user message, get an AI response, persist both, and return the reply.
