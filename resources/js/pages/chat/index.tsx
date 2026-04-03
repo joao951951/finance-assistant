@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageSquare, Plus, Send, Trash2, Bot, User, Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { MessageContent } from '@/components/message-content';
 import AppLayout from '@/layouts/app-layout';
 import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
 import MessageController from '@/actions/App/Http/Controllers/MessageController';
@@ -22,21 +23,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Chat IA', href: ConversationController.index.url() },
 ];
-
-// ─── Markdown-lite renderer (bold + line breaks only) ────────────────────────
-
-function MessageContent({ content }: { content: string }) {
-    const parts = content.split(/(\*\*[^*]+\*\*)/g);
-    return (
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {parts.map((part, i) =>
-                part.startsWith('**') && part.endsWith('**')
-                    ? <strong key={i}>{part.slice(2, -2)}</strong>
-                    : part
-            )}
-        </p>
-    );
-}
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 

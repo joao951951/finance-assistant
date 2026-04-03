@@ -20,6 +20,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/empty-state';
+import { SummaryCard } from '@/components/summary-card';
+import { TransactionList } from '@/components/transaction-list';
 import AppLayout from '@/layouts/app-layout';
 import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
@@ -43,68 +46,6 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
 ];
-
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-function SummaryCard({
-    title,
-    value,
-    subtitle,
-    valueClass = '',
-}: {
-    title: string;
-    value: string;
-    subtitle?: string;
-    valueClass?: string;
-}) {
-    return (
-        <Card>
-            <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className={`text-2xl font-bold ${valueClass}`}>{value}</p>
-                {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
-            </CardContent>
-        </Card>
-    );
-}
-
-function EmptyState({ message }: { message: string }) {
-    return (
-        <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-            {message}
-        </div>
-    );
-}
-
-function TransactionList({ transactions }: { transactions: Transaction[] }) {
-    return (
-        <ul className="flex flex-col divide-y text-sm">
-            {transactions.map((t) => (
-                <li key={t.id} className="flex items-center justify-between gap-3 py-2">
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{t.description}</p>
-                        <div className="mt-0.5 flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
-                                {formatDateBR(t.date)}
-                            </span>
-                            <span
-                                className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium"
-                                style={{ background: t.category_color + '22', color: t.category_color }}
-                            >
-                                {t.category_name}
-                            </span>
-                        </div>
-                    </div>
-                    <span className={`shrink-0 font-semibold ${t.type === 'credit' ? 'text-green-500' : 'text-red-500'}`}>
-                        {t.type === 'credit' ? '+' : '-'}{formatBRL(t.amount)}
-                    </span>
-                </li>
-            ))}
-        </ul>
-    );
-}
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
