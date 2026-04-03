@@ -12,25 +12,10 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
+import { formatBRL, formatDateBR } from '@/lib/formatters';
+import type { BreadcrumbItem, Transaction, Category } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Transaction {
-    id: number;
-    date: string;
-    description: string;
-    amount: number;
-    type: 'credit' | 'debit';
-    category_name: string;
-    category_color: string;
-}
-
-interface Category {
-    id: number;
-    name: string;
-    color: string;
-}
 
 interface Props {
     transactions: Transaction[];
@@ -42,10 +27,6 @@ interface Props {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatBRL(value: number): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
@@ -270,7 +251,7 @@ export default function TransactionsIndex({
                                     {allTransactions.map((t) => (
                                         <tr key={t.id} className="group border-b last:border-0 hover:bg-muted/30">
                                             <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                                                {new Date(t.date).toLocaleDateString('pt-BR')}
+                                                {formatDateBR(t.date)}
                                             </td>
                                             <td className="max-w-[200px] truncate px-4 py-3 sm:max-w-[320px]">
                                                 {t.description}

@@ -16,6 +16,7 @@ Assistente financeiro pessoal com importação de extratos bancários (CSV/PDF),
 | [`.claude/architecture.md`](.claude/architecture.md) | Estrutura de pastas, pipeline de importacao, banco, IA, deploy |
 | [`.claude/patterns.md`](.claude/patterns.md) | Convencoes de codigo, gotchas criticos |
 | [`.claude/features.md`](.claude/features.md) | Log de funcionalidades implementadas (fases 1-8 + UI/UX) |
+| [`.claude/refactoring.md`](.claude/refactoring.md) | Modularity violations diagnosis + refactoring plan (8 items) |
 
 ---
 

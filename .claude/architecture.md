@@ -8,6 +8,21 @@ Controllers finos (validacao, autorizacao, despacho) delegam para Services (logi
 Request → Controller → Service / Job → Model (Eloquent) → Controller → Inertia::render()
 ```
 
+### Technical debt: modularity violations
+
+> Full details and refactoring plan in [`.claude/refactoring.md`](refactoring.md)
+
+**Backend:**
+- `DashboardController` (191 lines) — contains 6 methods with inline SQL queries; should delegate to `DashboardService`
+- `TransactionController::index()` — join query + pagination inline; should delegate to `TransactionService`
+- `ConversationController` and `MessageController` — duplicate manual `ChatService` construction (missing factory)
+
+**Frontend:**
+- Monolithic pages (dashboard 407 lines, transactions 328, chat 326) — sub-components, hooks and types inline
+- Domain types (`Transaction`, `Category`, `Conversation`, etc.) duplicated in each page instead of centralized in `types/`
+- `formatBRL()` duplicated in dashboard.tsx and transactions/index.tsx
+- Missing domain hooks (`useInfiniteScroll`, `useChatMessaging`)
+
 ## Backend (Laravel 13)
 
 ```
@@ -50,6 +65,9 @@ app/
     RagService.php                 # Busca semantica cosine distance (<=>); top-N transacoes → formata contexto para prompt
     CsvParserService.php           # Detecta banco (Nubank/Inter/C6/Caixa/generico); normaliza colunas, datas, valores BR/EN
     PdfParserService.php           # smalot/pdfparser; regex por banco + state machine para credit cards genericos
+    # ⚠ MISSING (see refactoring.md):
+    # DashboardService.php         # Summary, spending, trend, transaction queries — currently inline in controller
+    # TransactionService.php       # Paginated listing, date range, recent — currently inline in controllers
 
   Jobs/
     ProcessRawImport.php           # Parse CSV/PDF → cria transactions → dispatch CategorizeTransactions (3 tries, 120s timeout)

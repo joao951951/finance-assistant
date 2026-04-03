@@ -23,46 +23,10 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
+import { formatBRL, formatBRLCompact, formatDateBR } from '@/lib/formatters';
+import type { BreadcrumbItem, Summary, CategorySpending, TrendPoint, Transaction, AvailableMonth } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Summary {
-    total_spent: number;
-    total_income: number;
-    balance: number;
-    transactions_count: number;
-    month_label: string;
-}
-
-interface CategorySpending {
-    name: string;
-    color: string;
-    total: number;
-}
-
-interface TrendPoint {
-    period: string;
-    label: string;
-    spent: number;
-    income: number;
-}
-
-
-interface Transaction {
-    id: number;
-    date: string;
-    description: string;
-    amount: number;
-    type: 'credit' | 'debit';
-    category_name: string;
-    category_color: string;
-}
-
-interface AvailableMonth {
-    value: string;
-    label: string;
-}
 
 interface Props {
     summary: Summary;
@@ -75,13 +39,6 @@ interface Props {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatBRL(value: number): string {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    }).format(value);
-}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
@@ -130,7 +87,7 @@ function TransactionList({ transactions }: { transactions: Transaction[] }) {
                         <p className="truncate font-medium">{t.description}</p>
                         <div className="mt-0.5 flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">
-                                {new Date(t.date).toLocaleDateString('pt-BR')}
+                                {formatDateBR(t.date)}
                             </span>
                             <span
                                 className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium"
@@ -321,13 +278,7 @@ export default function Dashboard({
                                         tick={{ fontSize: 11 }}
                                         axisLine={false}
                                         tickLine={false}
-                                        tickFormatter={(v: number) =>
-                                            new Intl.NumberFormat('pt-BR', {
-                                                notation: 'compact',
-                                                currency: 'BRL',
-                                                style: 'currency',
-                                            }).format(v)
-                                        }
+                                        tickFormatter={(v: number) => formatBRLCompact(v)}
                                     />
                                     <Tooltip formatter={(v) => formatBRL(Number(v))} />
                                     <Bar dataKey="income" name="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} />
@@ -369,7 +320,7 @@ export default function Dashboard({
                                         {recentTransactions.map((t) => (
                                             <tr key={t.id} className="border-b last:border-0">
                                                 <td className="py-2 pr-4 text-muted-foreground">
-                                                    {new Date(t.date).toLocaleDateString('pt-BR')}
+                                                    {formatDateBR(t.date)}
                                                 </td>
                                                 <td className="max-w-[220px] truncate py-2 pr-4">{t.description}</td>
                                                 <td className="py-2 pr-4">

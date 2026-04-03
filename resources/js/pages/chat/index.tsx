@@ -6,22 +6,9 @@ import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
 import MessageController from '@/actions/App/Http/Controllers/MessageController';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem, Conversation, Message } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Conversation {
-    id: number;
-    title: string | null;
-    created_at: string;
-}
-
-interface Message {
-    id: number;
-    role: 'user' | 'assistant';
-    content: string;
-    created_at: string;
-}
 
 interface Props {
     conversations: Conversation[];

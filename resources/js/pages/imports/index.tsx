@@ -4,18 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import ImportController from '@/actions/App/Http/Controllers/ImportController';
-import type { BreadcrumbItem } from '@/types';
-
-interface RawImport {
-    id: number;
-    filename: string;
-    type: 'csv' | 'pdf';
-    bank: string | null;
-    status: 'pending' | 'processing' | 'done' | 'failed';
-    transactions_count: number;
-    error_message: string | null;
-    created_at: string;
-}
+import type { BreadcrumbItem, RawImport } from '@/types';
 
 interface Props {
     imports: RawImport[];

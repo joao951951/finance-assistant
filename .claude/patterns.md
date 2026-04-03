@@ -80,3 +80,16 @@
 | Mass assignment | Usar `#[Fillable([...])]` attribute, nao `$fillable` property |
 | Import cascade delete | `RawImport::booted()` deleta transactions no evento `deleting` |
 | Category keywords | JSON array, matched case-insensitively contra descricao da transacao |
+
+## Modularity Rules (to be enforced — see refactoring.md)
+
+### Backend
+- **Controllers must be thin** — no SQL queries, no data transformation, no joins. Delegate to Services.
+- **New Services required:** `DashboardService`, `TransactionService` — existing queries in controllers must be moved.
+- **Factory pattern for ChatService:** use `ChatService::forUser($user)` — never construct dependency chain manually in controllers.
+
+### Frontend
+- **Domain types in `types/models.ts`** — never define `Transaction`, `Category`, `Message`, etc. inline in pages.
+- **Shared formatters in `lib/formatters.ts`** — never duplicate `formatBRL()` or date formatting in pages.
+- **Extract sub-components** — if a component is >30 lines and reusable, it goes in `components/`, not inline.
+- **Custom hooks for stateful logic** — IntersectionObserver, scroll management, form patterns go in `hooks/`.
