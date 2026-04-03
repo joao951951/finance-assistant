@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { NewTransactionDialog } from '@/components/new-transaction-dialog';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { formatBRL, formatDateBR } from '@/lib/formatters';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, Transaction, Category } from '@/types';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────��──
 
 interface Props {
     transactions: Transaction[];
@@ -35,7 +35,6 @@ const SCROLL_ONLY = ['transactions', 'current_page', 'has_more', 'next_page'];
 
 export default function TransactionsIndex({
     transactions: initialTransactions,
-    current_page,
     has_more,
     next_page,
     total,
@@ -46,27 +45,19 @@ export default function TransactionsIndex({
         [],
     );
 
-    const [allTransactions, setAllTransactions] = useState<Transaction[]>(initialTransactions);
     const [newOpen, setNewOpen] = useState(openNew);
-    const prevPropsRef = useRef({ initialTransactions, current_page });
 
-    // Sync props to state (render-phase pattern — avoids setState in effect)
-    if (
-        prevPropsRef.current.initialTransactions !== initialTransactions ||
-        prevPropsRef.current.current_page !== current_page
-    ) {
-        prevPropsRef.current = { initialTransactions, current_page };
-        if (current_page === 1) {
-            setAllTransactions(initialTransactions);
-        } else {
-            setAllTransactions([...allTransactions, ...initialTransactions]);
-        }
-    }
+    const getItems = useCallback(
+        (props: Record<string, unknown>) => props.transactions as Transaction[],
+        [],
+    );
 
-    const { loaderRef, isLoading } = useInfiniteScroll({
+    const { allItems: allTransactions, loaderRef, isLoading, resetItems } = useInfiniteScroll<Transaction>({
+        initialItems: initialTransactions,
         hasMore: has_more,
         nextPage: next_page,
         only: SCROLL_ONLY,
+        getItems,
     });
 
     // Remove ?new=1 from URL without reloading so refresh doesn't reopen the dialog
@@ -80,7 +71,7 @@ export default function TransactionsIndex({
         router.delete(TransactionController.destroy.url({ transaction: id }), {
             preserveState: true,
             preserveUrl: true,
-            onSuccess: () => setAllTransactions((prev) => prev.filter((t) => t.id !== id)),
+            onSuccess: () => resetItems(allTransactions.filter((t) => t.id !== id)),
         });
     }
 
