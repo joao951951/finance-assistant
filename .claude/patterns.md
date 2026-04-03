@@ -1,95 +1,96 @@
-# Padroes e Convencoes
+# Patterns and Conventions
 
 ## PHP / Laravel
 
-- **PSR-12** via Laravel Pint (rode `composer lint` antes de commitar)
-- **PHP 8 attributes** nos models: `#[Fillable]`, `#[Hidden]` — sem propriedades `$fillable`/`$guarded`
-- **Controllers finos** — validam, autorizam, delegam para Services/Jobs
-- **Services** para logica de negocio e integracoes externas (OpenAI, parsers)
-- **Jobs** para processamento assincrono (parsing, categorizacao, embeddings)
-- **Policies** para autorizacao por recurso (`ConversationPolicy`, `RawImportPolicy`)
-- **Actions** (Fortify) para registro e reset de senha
-- **Concerns (Traits)** para regras de validacao compartilhadas (`PasswordValidationRules`, `ProfileValidationRules`)
-- Ownership check manual em controllers sem Policy: `abort_unless($model->user_id === $request->user()->id, 403)`
+- **PSR-12** via Laravel Pint (run `composer lint` before committing)
+- **PHP 8 attributes** on models: `#[Fillable]`, `#[Hidden]` — no `$fillable`/`$guarded` properties
+- **Thin controllers** — validate, authorize, delegate to Services/Jobs
+- **Services** for business logic and external integrations (OpenAI, parsers, dashboard queries, transaction queries)
+- **Jobs** for async processing (parsing, categorization, embeddings)
+- **Policies** for resource authorization (`ConversationPolicy`, `RawImportPolicy`)
+- **Actions** (Fortify) for registration and password reset
+- **Concerns (Traits)** for shared validation rules (`PasswordValidationRules`, `ProfileValidationRules`)
+- Manual ownership check in controllers without Policy: `abort_unless($model->user_id === $request->user()->id, 403)`
 
 ## TypeScript / React
 
-- TypeScript strict — sem `any`
-- Functional components apenas
-- Usar `Form` do Inertia para formularios (nao `useForm` manual)
-- **Wayfinder** para rotas e actions — importar de `@/actions/App/Http/Controllers/XController`
-  - Usar `.url()` quando Inertia espera uma string: `ImportController.store.url()`
-  - Nunca escrever rotas manualmente como `/imports` ou `/api/...`
-- shadcn/ui components em `resources/js/components/ui/` — nao editar diretamente
-- Tailwind CSS v4 — usar variaveis CSS, **nao** `tailwind.config.js`
-- Graficos com Recharts (`PieChart` donut, `BarChart`)
+- TypeScript strict — no `any`
+- Functional components only
+- Use `Form` from Inertia for forms (not manual `useForm`)
+- **Wayfinder** for routes and actions — import from `@/actions/App/Http/Controllers/XController`
+  - Use `.url()` when Inertia expects a string: `ImportController.store.url()`
+  - Never write routes manually like `/imports` or `/api/...`
+- shadcn/ui components in `resources/js/components/ui/` — do not edit directly
+- Tailwind CSS v4 — use CSS variables, **not** `tailwind.config.js`
+- Charts with Recharts (`PieChart` donut, `BarChart`)
 - Path alias: `@/*` → `resources/js/*`
 
-## Idioma
+## Language
 
-- Toda a UI em **portugues brasileiro** (PT-BR)
-- Mensagens de erro do Laravel em PT-BR (arquivos em `lang/en/`)
-- Comentarios de codigo podem ser em ingles ou portugues
+- All UI in **Brazilian Portuguese** (PT-BR)
+- Laravel error messages in PT-BR (files in `lang/en/`)
+- Code comments can be in English or Portuguese
 
-## OpenAI / IA
+## OpenAI / AI
 
-- **Nunca** instanciar `OpenAiService` diretamente — usar factories estaticos:
-  - `OpenAiService::forUser(User $user)` — nos controllers
-  - `OpenAiService::forUserId(int $id)` — nos jobs (DI nao conhece o usuario)
-- A chave de API e por usuario (`users.openai_api_key`, encrypted via cast)
-- Fallback para a chave global em `config/services.php` se o usuario nao configurou
-- `User::hasOpenAiKey(): bool` — verificar disponibilidade antes de chamar a IA
-- `openai_api_key` esta em `#[Hidden]` no model — nunca exposta em props Inertia
-- A classe `OpenAI` (openai-php/client) esta no namespace raiz — `use OpenAI;` correto; aviso do IDE e falso positivo
-- Categorizacao usa JSON mode (`response_format: json_object`)
-- Chat usa `temperature: 0.7`; categorizacao usa `temperature: 0`
+- **Never** instantiate `OpenAiService` directly — use static factories:
+  - `OpenAiService::forUser(User $user)` — in controllers
+  - `OpenAiService::forUserId(int $id)` — in jobs (DI doesn't know the user)
+- **For chat pipelines**, use `ChatService::forUser(User $user)` — builds the full dependency chain (OpenAiService → EmbeddingService → RagService → ChatService)
+- API key is per-user (`users.openai_api_key`, encrypted via cast)
+- Fallback to global key in `config/services.php` if user hasn't configured one
+- `User::hasOpenAiKey(): bool` — check availability before calling AI
+- `openai_api_key` is in `#[Hidden]` on the model — never exposed in Inertia props
+- The `OpenAI` class (openai-php/client) is in the root namespace — `use OpenAI;` is correct; IDE warning is a false positive
+- Categorization uses JSON mode (`response_format: json_object`)
+- Chat uses `temperature: 0.7`; categorization uses `temperature: 0`
 
 ## pgvector / Embeddings
 
-- Colunas `vector` sempre via `DB::statement` — Blueprint nao tem suporte nativo
-- Embeddings armazenados/consultados sempre via SQL raw
-- Operador de distancia cosine: `<=>` (quanto menor, mais similar)
-- HNSW index em `transactions.embedding` para performance
-- Embedding model: `text-embedding-3-small` (1536 dimensoes)
-- Batch de 100 transacoes por chamada de embedding
+- `vector` columns always via `DB::statement` — Blueprint has no native support
+- Embeddings stored/queried always via raw SQL
+- Cosine distance operator: `<=>` (lower = more similar)
+- HNSW index on `transactions.embedding` for performance
+- Embedding model: `text-embedding-3-small` (1536 dimensions)
+- Batch of 100 transactions per embedding call
 
 ## Auth
 
-- Auth configurado via **Laravel Fortify** — nao recriar nem sobrescrever
-- 2FA com TOTP ja implementado em `settings/security.tsx`
-- Password rules: min 12 chars, mixed case, numbers, symbols, uncompromised (producao)
-- Rate limiting: login 5/min (por IP+username), 2FA 5/min, password update 6/min
+- Auth configured via **Laravel Fortify** — do not recreate or override
+- 2FA with TOTP already implemented in `settings/security.tsx`
+- Password rules: min 12 chars, mixed case, numbers, symbols, uncompromised (production)
+- Rate limiting: login 5/min (per IP+username), 2FA 5/min, password update 6/min
 - Session cookie: HttpOnly, Secure, SameSite=Lax
 
-## SSL no Windows (desenvolvimento)
+## SSL on Windows (development)
 
-- cURL no Windows pode falhar com `SSL certificate problem: unable to get local issuer certificate`
-- Solucao: `OpenAiService` usa cliente Guzzle customizado com `verify => storage_path('cacert.pem')`
-- O arquivo `storage/cacert.pem` foi baixado do curl.se/ca/cacert.pem
+- cURL on Windows may fail with `SSL certificate problem: unable to get local issuer certificate`
+- Solution: `OpenAiService` uses a custom Guzzle client with `verify => storage_path('cacert.pem')`
+- The `storage/cacert.pem` file was downloaded from curl.se/ca/cacert.pem
 
-## Gotchas Criticos
+## Critical Gotchas
 
-| Problema | Solucao |
+| Problem | Solution |
 |---|---|
-| `vector` type no migration | Usar `DB::statement()` em vez de Blueprint |
-| Embeddings no Eloquent | Sempre SQL raw (`DB::statement` / `DB::select`) |
-| Wayfinder retorna objeto | Usar `.url()` quando string e necessaria |
-| `OpenAI` class nao reconhecida no IDE | Falso positivo — `use OpenAI;` esta correto |
-| SSL cURL no Windows | `cacert.pem` em `storage/` + Guzzle customizado no `OpenAiService` |
-| Recharts ValueType no Tooltip | Usar `formatter={(v) => formatBRL(Number(v))}` |
-| Mass assignment | Usar `#[Fillable([...])]` attribute, nao `$fillable` property |
-| Import cascade delete | `RawImport::booted()` deleta transactions no evento `deleting` |
-| Category keywords | JSON array, matched case-insensitively contra descricao da transacao |
+| `vector` type in migrations | Use `DB::statement()` instead of Blueprint |
+| Embeddings in Eloquent | Always raw SQL (`DB::statement` / `DB::select`) |
+| Wayfinder returns object | Use `.url()` when string is needed |
+| `OpenAI` class not recognized by IDE | False positive — `use OpenAI;` is correct |
+| SSL cURL on Windows | `cacert.pem` in `storage/` + custom Guzzle in `OpenAiService` |
+| Recharts ValueType in Tooltip | Use `formatter={(v) => formatBRL(Number(v))}` |
+| Mass assignment | Use `#[Fillable([...])]` attribute, not `$fillable` property |
+| Import cascade delete | `RawImport::booted()` deletes transactions on `deleting` event |
+| Category keywords | JSON array, matched case-insensitively against transaction description |
 
-## Modularity Rules (to be enforced — see refactoring.md)
+## Modularity Rules
 
 ### Backend
 - **Controllers must be thin** — no SQL queries, no data transformation, no joins. Delegate to Services.
-- **New Services required:** `DashboardService`, `TransactionService` — existing queries in controllers must be moved.
-- **Factory pattern for ChatService:** use `ChatService::forUser($user)` — never construct dependency chain manually in controllers.
+- **Service layer:** `DashboardService` for dashboard queries, `TransactionService` for transaction listing/pagination, `ChatService::forUser()` for chat pipeline.
+- **Factory pattern:** use `ChatService::forUser($user)` — never construct the dependency chain manually in controllers.
 
 ### Frontend
 - **Domain types in `types/models.ts`** — never define `Transaction`, `Category`, `Message`, etc. inline in pages.
 - **Shared formatters in `lib/formatters.ts`** — never duplicate `formatBRL()` or date formatting in pages.
-- **Extract sub-components** — if a component is >30 lines and reusable, it goes in `components/`, not inline.
+- **Extract sub-components** — if a component is >30 lines and reusable, it goes in `components/`, not inline in a page.
 - **Custom hooks for stateful logic** — IntersectionObserver, scroll management, form patterns go in `hooks/`.

@@ -1,50 +1,50 @@
-# Projeto: Assistente Financeiro
+# Project: Finance Assistant
 
-## Objetivo
+## Goal
 
-Assistente financeiro pessoal onde usuarios importam extratos bancarios (CSV/PDF) e recebem insights sobre padroes de gasto e sugestoes de economia via integracao com IA.
+Personal finance assistant where users import bank statements (CSV/PDF) and receive insights about spending patterns and savings suggestions via AI integration.
 
-Aplicacao de portfolio — foco em codigo limpo, arquitetura bem definida e funcionalidades completas.
+Portfolio application — focus on clean code, well-defined architecture, and complete features.
 
 ## Stack
 
-| Camada | Tecnologia |
+| Layer | Technology |
 |---|---|
 | Backend | Laravel 13 + PHP 8.3+ |
 | Frontend | React 19 + Inertia.js |
 | UI | shadcn/ui + Tailwind CSS v4 + Radix UI |
-| Auth | Laravel Fortify (login, registro, 2FA, reset, verificacao email) |
-| Banco | PostgreSQL 14+ + pgvector |
-| IA | OpenAI GPT-4o (chat, categorizacao) |
+| Auth | Laravel Fortify (login, register, 2FA, reset, email verification) |
+| Database | PostgreSQL 14+ + pgvector |
+| AI | OpenAI GPT-4o (chat, categorization) |
 | Embeddings | text-embedding-3-small 1536d (pgvector) |
 | Queue | Laravel Queue (database driver) |
-| Tipos | TypeScript 5.7 strict |
-| Rotas tipadas | Laravel Wayfinder (gera tipos TS das rotas PHP) |
+| Types | TypeScript 5.7 strict |
+| Typed routes | Laravel Wayfinder (generates TS types from PHP routes) |
 | Build | Vite 7 + React Compiler |
-| Graficos | Recharts |
+| Charts | Recharts |
 | Parsers | league/csv + smalot/pdfparser |
 | Deploy | OCI (Oracle Cloud) + Nginx + Supervisor |
 
-## Variaveis de Ambiente
+## Environment Variables
 
 ```env
 APP_NAME="Assistente Financeiro"
 
-DB_CONNECTION=pgsql   # obrigatorio para pgvector
+DB_CONNECTION=pgsql   # required for pgvector
 
-# Chave global de fallback (cada usuario tem a sua propria)
+# Global fallback key (each user has their own)
 OPENAI_API_KEY=
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 OPENAI_CHAT_MODEL=gpt-4o
 ```
 
-## Comandos de Desenvolvimento
+## Development Commands
 
 ```bash
-# Inicia servidor + fila + vite (concorrente)
+# Start server + queue + vite (concurrent)
 composer dev
 
-# Testes (PHPUnit — Feature + Unit)
+# Tests (PHPUnit — Feature + Unit)
 composer test
 
 # Lint PHP (Pint — PSR-12)
@@ -54,14 +54,14 @@ composer lint
 npm run lint
 npm run format
 
-# Type check TypeScript strict
+# TypeScript strict check
 npm run types:check
 
-# CI completo
+# Full CI
 composer ci:check
 ```
 
-## Bancos Suportados (Import)
+## Supported Banks (Import)
 
-CSV: Nubank, Inter, C6, Caixa, generico
-PDF: Nubank, Inter, Bradesco, C6, Itau, Santander, generico (credit card state machine)
+CSV: Nubank, Inter, C6, Caixa, generic
+PDF: Nubank, Inter, Bradesco, C6, Itau, Santander, generic (credit card state machine)

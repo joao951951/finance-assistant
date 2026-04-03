@@ -1,47 +1,32 @@
-# Arquitetura
+# Architecture
 
-## Padrao: MVC + Services Layer
+## Pattern: MVC + Services Layer
 
-Controllers finos (validacao, autorizacao, despacho) delegam para Services (logica de negocio). Jobs assincrono para tarefas pesadas. Models Eloquent com `#[Fillable]` attributes — sem Repository pattern.
+Thin controllers (validation, authorization, dispatch) delegate to Services (business logic). Async jobs for heavy tasks. Eloquent models with `#[Fillable]` attributes — no Repository pattern.
 
 ```
 Request → Controller → Service / Job → Model (Eloquent) → Controller → Inertia::render()
 ```
 
-### Technical debt: modularity violations
-
-> Full details and refactoring plan in [`.claude/refactoring.md`](refactoring.md)
-
-**Backend:**
-- `DashboardController` (191 lines) — contains 6 methods with inline SQL queries; should delegate to `DashboardService`
-- `TransactionController::index()` — join query + pagination inline; should delegate to `TransactionService`
-- `ConversationController` and `MessageController` — duplicate manual `ChatService` construction (missing factory)
-
-**Frontend:**
-- Monolithic pages (dashboard 407 lines, transactions 328, chat 326) — sub-components, hooks and types inline
-- Domain types (`Transaction`, `Category`, `Conversation`, etc.) duplicated in each page instead of centralized in `types/`
-- `formatBRL()` duplicated in dashboard.tsx and transactions/index.tsx
-- Missing domain hooks (`useInfiniteScroll`, `useChatMessaging`)
-
 ## Backend (Laravel 13)
 
 ```
 app/
-  Models/                          # Eloquent models com #[Fillable] / #[Hidden]
+  Models/                          # Eloquent models with #[Fillable] / #[Hidden]
     User.php                       # Auth + TwoFactorAuthenticatable + hasMany(categories, transactions, conversations, rawImports)
-    Transaction.php                # user, rawImport, category; casts: date, decimal:2; embedding via SQL raw
+    Transaction.php                # user, rawImport, category; casts: date, decimal:2; embedding via raw SQL
     Category.php                   # user; casts: keywords → array; name, color, icon, keywords[]
     RawImport.php                  # user, transactions; status helpers (markProcessing/Done/Failed); cascade delete
-    Conversation.php               # user, messages; titulo auto-gerado
+    Conversation.php               # user, messages; auto-generated title
     Message.php                    # conversation; role (user/assistant), content
 
   Http/
     Controllers/
-      DashboardController.php      # Invokable — summary, spendingByCategory, trend (daily), recentTransactions, monthSelector
-      TransactionController.php    # index (paginado 25/page), store (manual), destroy (ownership check)
+      DashboardController.php      # Invokable — delegates to DashboardService; month selector + date parsing
+      TransactionController.php    # index (delegates to TransactionService), store (manual), destroy (ownership check)
       ImportController.php         # index, store (multi-file upload), destroy (policy + storage cleanup)
-      ConversationController.php   # index, show, store, destroy (ConversationPolicy)
-      MessageController.php        # store → ChatService::reply()
+      ConversationController.php   # index, show, store (ChatService::forUser), destroy (ConversationPolicy)
+      MessageController.php        # store → ChatService::forUser() → reply()
       Settings/
         ProfileController.php      # edit, update, destroy (account deletion)
         SecurityController.php     # edit, update (password change)
@@ -58,24 +43,23 @@ app/
       TwoFactorAuthenticationRequest.php
 
   Services/
-    OpenAiService.php              # Wrapper openai-php/client; factories: forUser(), forUserId(); metodos: chat(), categorizeTransactions(), embeddings()
-    ChatService.php                # Orquestra: persist user msg → RAG context → history (10 msgs) → GPT-4o → persist reply → auto-title
-    CategorizationService.php      # Dois passos: keyword-match primeiro → fallback IA em chunks de 50; cria categorias dinamicamente
-    EmbeddingService.php           # Batch embeddings (100/call); armazena via DB::statement com ::vector cast
-    RagService.php                 # Busca semantica cosine distance (<=>); top-N transacoes → formata contexto para prompt
-    CsvParserService.php           # Detecta banco (Nubank/Inter/C6/Caixa/generico); normaliza colunas, datas, valores BR/EN
-    PdfParserService.php           # smalot/pdfparser; regex por banco + state machine para credit cards genericos
-    # ⚠ MISSING (see refactoring.md):
-    # DashboardService.php         # Summary, spending, trend, transaction queries — currently inline in controller
-    # TransactionService.php       # Paginated listing, date range, recent — currently inline in controllers
+    OpenAiService.php              # Wrapper openai-php/client; factories: forUser(), forUserId(); methods: chat(), categorizeTransactions(), embeddings()
+    ChatService.php                # Orchestrates: persist user msg → RAG context → history (10 msgs) → GPT-4o → persist reply → auto-title; factory: forUser()
+    DashboardService.php           # Summary, spending by category, trend, month transactions, recent transactions, available months
+    TransactionService.php         # Paginated listing with category join, categories for user
+    CategorizationService.php      # Two steps: keyword-match first → fallback AI in chunks of 50; creates categories dynamically
+    EmbeddingService.php           # Batch embeddings (100/call); stores via DB::statement with ::vector cast
+    RagService.php                 # Semantic search cosine distance (<=>); top-N transactions → formats context for prompt
+    CsvParserService.php           # Detects bank (Nubank/Inter/C6/Caixa/generic); normalizes columns, dates, BR/EN values
+    PdfParserService.php           # smalot/pdfparser; regex per bank + state machine for generic credit cards
 
   Jobs/
-    ProcessRawImport.php           # Parse CSV/PDF → cria transactions → dispatch CategorizeTransactions (3 tries, 120s timeout)
+    ProcessRawImport.php           # Parse CSV/PDF → create transactions → dispatch CategorizeTransactions (3 tries, 120s timeout)
     CategorizeTransactions.php     # Batch categorize → dispatch GenerateEmbeddings (no retry, 300s timeout)
-    GenerateEmbeddings.php         # Gera embeddings para import (3 tries, 600s timeout)
+    GenerateEmbeddings.php         # Generate embeddings for import (3 tries, 600s timeout)
 
   Actions/Fortify/
-    CreateNewUser.php              # Registro + seeds categorias default
+    CreateNewUser.php              # Registration + seeds default categories
     ResetUserPassword.php          # Reset via token
 
   Policies/
@@ -88,29 +72,29 @@ app/
 
   Providers/
     AppServiceProvider.php         # CarbonImmutable, Password rules (min 12, mixed case, numbers, symbols, uncompromised)
-    FortifyServiceProvider.php     # Views Inertia, rate limiting (login 5/min, 2FA 5/min)
+    FortifyServiceProvider.php     # Inertia views, rate limiting (login 5/min, 2FA 5/min)
 ```
 
-## Pipeline de importacao (fila)
+## Import Pipeline (Queue)
 
 ```
 Upload (multi-file) → ProcessRawImport → CategorizeTransactions → GenerateEmbeddings
-                       ├─ CSV → CsvParserService (detecta banco, normaliza)
+                       ├─ CSV → CsvParserService (detects bank, normalizes)
                        └─ PDF → PdfParserService (regex + state machine)
 ```
 
-Cada job dispara o proximo ao finalizar. Erros sao marcados em `raw_imports.status` (pending → processing → done/failed).
+Each job dispatches the next upon completion. Errors are marked in `raw_imports.status` (pending → processing → done/failed).
 
 ## Frontend (React 19 + Inertia.js)
 
 ```
 resources/js/
-  pages/                           # Paginas Inertia (um arquivo = uma rota)
-    welcome.tsx                    # Pagina inicial publica (features, tech stack)
-    dashboard.tsx                  # Resumo financeiro + graficos Recharts (PieChart donut + BarChart)
-    transactions/index.tsx         # CRUD transacoes + paginacao + filtro categoria
-    imports/index.tsx              # Upload multi-arquivo + historico com status
-    chat/index.tsx                 # Split pane (sidebar conversas + area de chat), sugestoes, loading bubble
+  pages/                           # Inertia pages (one file = one route)
+    welcome.tsx                    # Public landing page (features, tech stack)
+    dashboard.tsx                  # Financial summary + Recharts charts (PieChart donut + BarChart)
+    transactions/index.tsx         # Transaction list + infinite scroll + create dialog
+    imports/index.tsx              # Multi-file upload + history with status
+    chat/index.tsx                 # Split pane (conversation sidebar + chat area), suggestions, loading bubble
     auth/
       login.tsx
       register.tsx
@@ -120,16 +104,22 @@ resources/js/
       confirm-password.tsx
       two-factor-challenge.tsx
     settings/
-      profile.tsx                  # Nome, email, verificacao, exclusao de conta
-      security.tsx                 # Senha + 2FA (TOTP setup modal)
+      profile.tsx                  # Name, email, verification, account deletion
+      security.tsx                 # Password + 2FA (TOTP setup modal)
       appearance.tsx               # Light/dark/system
-      api.tsx                      # Chave OpenAI + modelos
+      api.tsx                      # OpenAI key + models
 
   components/
-    ui/                            # shadcn/ui (Radix) — nao editar diretamente
-    app-sidebar.tsx                # Menu lateral colapsavel
-    app-logo-icon.tsx              # Logo SVG (wallet icon)
-    two-factor-setup-modal.tsx     # Modal 2FA com QR code + recovery codes
+    ui/                            # shadcn/ui (Radix) — do not edit directly
+    summary-card.tsx               # Reusable card with title, value, subtitle
+    transaction-list.tsx           # Compact transaction list with category badges
+    empty-state.tsx                # Empty state placeholder
+    new-transaction-dialog.tsx     # Dialog form for creating manual transactions
+    import-card.tsx                # Import item with status badge + delete
+    message-content.tsx            # Markdown-lite renderer (bold + line breaks)
+    app-sidebar.tsx                # Collapsible sidebar menu
+    app-logo-icon.tsx              # SVG logo (wallet icon)
+    two-factor-setup-modal.tsx     # 2FA modal with QR code + recovery codes
     nav-main.tsx, nav-footer.tsx, nav-user.tsx
     breadcrumbs.tsx
     input-error.tsx, password-input.tsx
@@ -138,34 +128,40 @@ resources/js/
     delete-user.tsx
 
   layouts/
-    app-layout.tsx                 # Layout autenticado (sidebar + header)
-    auth-layout.tsx                # Layout auth (card/simple/split variants)
-    settings/layout.tsx            # Tab navigation para settings
+    app-layout.tsx                 # Authenticated layout (sidebar + header)
+    auth-layout.tsx                # Auth layout (card/simple/split variants)
+    settings/layout.tsx            # Tab navigation for settings
 
   hooks/
-    use-appearance.tsx             # Tema (light/dark/system) com cookie
-    use-two-factor-auth.ts         # Estado e setup do 2FA
+    use-infinite-scroll.ts         # Generic IntersectionObserver + Inertia pagination (accumulates items via onSuccess callback)
+    use-appearance.tsx             # Theme (light/dark/system) with cookie
+    use-two-factor-auth.ts         # 2FA state and setup
     use-clipboard.ts               # Copy to clipboard
     use-current-url.ts
     use-initials.tsx
     use-mobile.tsx
     use-mobile-navigation.ts
 
-  actions/                         # Gerado pelo Wayfinder (nao editar)
-  routes/                          # Gerado pelo Wayfinder (nao editar)
-  types/                           # index.ts, auth.ts, navigation.ts, ui.ts, global.d.ts
+  lib/
+    formatters.ts                  # formatBRL(), formatBRLCompact(), formatDateBR() — shared across all pages
+    form.ts                        # Inertia form helpers
+    utils.ts                       # General utilities
+
+  actions/                         # Generated by Wayfinder (do not edit)
+  routes/                          # Generated by Wayfinder (do not edit)
+  types/                           # index.ts, auth.ts, models.ts, navigation.ts, ui.ts, global.d.ts
 ```
 
-## Rotas
+## Routes
 
 ### web.php (auth + verified)
-- `GET /` — welcome (publica)
+- `GET /` — welcome (public)
 - `GET /dashboard` — DashboardController (invokable)
 - `GET|POST /transactions` — index, store
 - `DELETE /transactions/{transaction}` — destroy
 - `GET|POST /imports` — index, store
 - `DELETE /imports/{rawImport}` — destroy
-- `GET|POST /chat` — index (lista), store (nova conversa)
+- `GET|POST /chat` — index (list), store (new conversation)
 - `GET|DELETE /chat/{conversation}` — show, destroy
 - `POST /chat/{conversation}/messages` — MessageController::store
 
@@ -177,49 +173,50 @@ resources/js/
 - `GET /settings/appearance` — Inertia page
 - `GET|PATCH|DELETE /settings/api` — edit, update, destroy
 
-## IA / RAG
+## AI / RAG
 
-- **OpenAiService** — wrapper `openai-php/client`; factory pattern (forUser/forUserId); 3 metodos: `chat()`, `categorizeTransactions()`, `embeddings()`
-- **Embeddings** — `text-embedding-3-small`, 1536 dimensoes, `transactions.embedding vector(1536)` via `DB::statement`
-- **HNSW index** em `transactions.embedding` para busca eficiente (`<=>` cosine distance)
-- **RAG** — `RagService::search()` busca N transacoes mais similares → `contextFor()` formata para o prompt
-- **Chat** — sincrono (POST aguarda resposta GPT); historico limitado a 10 mensagens; auto-gera titulo na 1a mensagem
-- **Categorizacao** — keyword-match primeiro (rapido) → fallback GPT-4o em chunks de 50; cria categorias novas automaticamente; JSON mode
+- **OpenAiService** — wrapper for `openai-php/client`; factory pattern (forUser/forUserId); 3 methods: `chat()`, `categorizeTransactions()`, `embeddings()`
+- **ChatService** — factory `forUser()` builds the full pipeline (OpenAiService → EmbeddingService → RagService → ChatService)
+- **Embeddings** — `text-embedding-3-small`, 1536 dimensions, `transactions.embedding vector(1536)` via `DB::statement`
+- **HNSW index** on `transactions.embedding` for efficient search (`<=>` cosine distance)
+- **RAG** — `RagService::search()` finds N most similar transactions → `contextFor()` formats for prompt
+- **Chat** — synchronous (POST waits for GPT response); history limited to 10 messages; auto-generates title on 1st message
+- **Categorization** — keyword-match first (fast) → fallback GPT-4o in chunks of 50; creates new categories automatically; JSON mode
 
-## Banco de Dados
+## Database
 
-- PostgreSQL obrigatorio (pgvector)
-- `vector` column criada via `DB::statement` (sem suporte nativo no Blueprint)
-- Embeddings consultados sempre via SQL raw (`<=>` operator)
+- PostgreSQL required (pgvector)
+- `vector` column created via `DB::statement` (no native Blueprint support)
+- Embeddings always queried via raw SQL (`<=>` operator)
 - Cascade deletes: user → categories/transactions/conversations/rawImports; rawImport → transactions (via model event); conversation → messages
-- Nao usa soft deletes
+- No soft deletes
 
-## Testes
+## Tests
 
 ```
 tests/
   Feature/
     Auth/                          # Authentication, Registration, PasswordReset, 2FA, EmailVerification
-    DashboardTest.php              # Guest redirect, autenticado
-    DashboardControllerTest.php    # Dados do dashboard
-    TransactionControllerTest.php  # CRUD + paginacao
-    ImportControllerTest.php       # Upload, validacao tipo/tamanho, delete com policy
+    DashboardTest.php              # Guest redirect, authenticated
+    DashboardControllerTest.php    # Dashboard data
+    TransactionControllerTest.php  # CRUD + pagination
+    ImportControllerTest.php       # Upload, type/size validation, delete with policy
     ConversationControllerTest.php # Chat CRUD
-    ProcessRawImportJobTest.php    # Pipeline de importacao
+    ProcessRawImportJobTest.php    # Import pipeline
     Settings/                      # ProfileUpdate, Security
   Unit/
-    CsvParserServiceTest.php       # Deteccao banco, colunas, datas, valores
-    PdfParserServiceTest.php       # Extracao PDF, regex, state machine
+    CsvParserServiceTest.php       # Bank detection, columns, dates, values
+    PdfParserServiceTest.php       # PDF extraction, regex, state machine
 ```
 
-PHPUnit com PostgreSQL (`finance_assistant_test`), sync queue, array cache.
+PHPUnit with PostgreSQL (`finance_assistant_test`), sync queue, array cache.
 
 ## Deploy
 
 - **Infra:** Oracle Cloud Instance (Ubuntu 22.04/24.04)
-- **Provisioning:** `deploy/cloud-init.sh` — instala PHP 8.4, Composer, Node.js 20, Nginx, Supervisor
+- **Provisioning:** `deploy/cloud-init.sh` — installs PHP 8.4, Composer, Node.js 20, Nginx, Supervisor
 - **Web:** Nginx → PHP-FPM 8.4 (fastcgi, 120s timeout)
-- **Queue:** Supervisor → `php artisan queue:work` (1 processo, 3 tries, 1h max)
-- **DB:** PostgreSQL via Supabase pooler (pgvector habilitado)
-- **Deploy script:** `/usr/local/bin/deploy` gerado pelo cloud-init
-- **Dominio:** assistentefinanceiro.online
+- **Queue:** Supervisor → `php artisan queue:work` (1 process, 3 tries, 1h max)
+- **DB:** PostgreSQL via Supabase pooler (pgvector enabled)
+- **Deploy script:** `/usr/local/bin/deploy` generated by cloud-init
+- **Domain:** assistentefinanceiro.online
