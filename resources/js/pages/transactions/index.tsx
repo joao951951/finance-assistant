@@ -1,14 +1,14 @@
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
+import { NewTransactionDialog } from '@/components/new-transaction-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { NewTransactionDialog } from '@/components/new-transaction-dialog';
-import AppLayout from '@/layouts/app-layout';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
-import { dashboard } from '@/routes';
-import { formatBRL, formatDateBR } from '@/lib/formatters';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import AppLayout from '@/layouts/app-layout';
+import { formatBRL, formatDateBR } from '@/lib/formatters';
+import { dashboard } from '@/routes';
 import type { BreadcrumbItem, Transaction, Category } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -48,6 +48,20 @@ export default function TransactionsIndex({
 
     const [allTransactions, setAllTransactions] = useState<Transaction[]>(initialTransactions);
     const [newOpen, setNewOpen] = useState(openNew);
+    const prevPropsRef = useRef({ initialTransactions, current_page });
+
+    // Sync props to state (render-phase pattern — avoids setState in effect)
+    if (
+        prevPropsRef.current.initialTransactions !== initialTransactions ||
+        prevPropsRef.current.current_page !== current_page
+    ) {
+        prevPropsRef.current = { initialTransactions, current_page };
+        if (current_page === 1) {
+            setAllTransactions(initialTransactions);
+        } else {
+            setAllTransactions([...allTransactions, ...initialTransactions]);
+        }
+    }
 
     const { loaderRef, isLoading } = useInfiniteScroll({
         hasMore: has_more,
@@ -60,15 +74,7 @@ export default function TransactionsIndex({
         if (openNew) {
             window.history.replaceState({}, '', window.location.pathname);
         }
-    }, []);
-
-    useEffect(() => {
-        if (current_page === 1) {
-            setAllTransactions(initialTransactions);
-        } else {
-            setAllTransactions((prev) => [...prev, ...initialTransactions]);
-        }
-    }, [initialTransactions, current_page]);
+    }, [openNew]);
 
     function deleteTransaction(id: number) {
         router.delete(TransactionController.destroy.url({ transaction: id }), {

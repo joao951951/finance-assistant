@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import {
     Bar,
     BarChart,
@@ -11,7 +12,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { useState } from 'react';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
+import { EmptyState } from '@/components/empty-state';
+import { SummaryCard } from '@/components/summary-card';
+import { TransactionList } from '@/components/transaction-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -20,13 +24,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { EmptyState } from '@/components/empty-state';
-import { SummaryCard } from '@/components/summary-card';
-import { TransactionList } from '@/components/transaction-list';
 import AppLayout from '@/layouts/app-layout';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
-import { dashboard } from '@/routes';
 import { formatBRL, formatBRLCompact, formatDateBR } from '@/lib/formatters';
+import { dashboard } from '@/routes';
 import type { BreadcrumbItem, Summary, CategorySpending, TrendPoint, Transaction, AvailableMonth } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────

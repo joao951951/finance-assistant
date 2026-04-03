@@ -1,12 +1,12 @@
 import { Head, useForm, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
 import { MessageSquare, Plus, Send, Trash2, Bot, User, Loader2, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { MessageContent } from '@/components/message-content';
-import AppLayout from '@/layouts/app-layout';
+import { useEffect, useRef, useState } from 'react';
 import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
 import MessageController from '@/actions/App/Http/Controllers/MessageController';
+import { MessageContent } from '@/components/message-content';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Conversation, Message } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -52,7 +52,11 @@ export default function ChatIndex({ conversations, activeConversation, messages 
 
     function handleReply(e: React.FormEvent) {
         e.preventDefault();
-        if (!activeConversation) return;
+
+        if (!activeConversation) {
+return;
+}
+
         setIsSubmitting(true);
         replyForm.post(MessageController.store.url({ conversation: activeConversation.id }), {
             onSuccess: () => replyForm.reset(),
@@ -100,7 +104,9 @@ export default function ChatIndex({ conversations, activeConversation, messages 
                                 variant="ghost"
                                 size="icon"
                                 className="size-7"
-                                onClick={() => { setSidebarOpen(false); router.visit(ConversationController.index.url()); }}
+                                onClick={() => {
+ setSidebarOpen(false); router.visit(ConversationController.index.url()); 
+}}
                                 title="Nova conversa"
                             >
                                 <Plus className="size-4" />

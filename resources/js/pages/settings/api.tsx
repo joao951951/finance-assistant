@@ -40,6 +40,7 @@ export default function ApiSettings({
 
     function removeKey(e: React.FormEvent) {
         e.preventDefault();
+
         if (confirm('Remover a chave da API? O chat com IA ficará indisponível até você adicionar uma nova.')) {
             removeForm.delete(ApiController.destroy.url(), { preserveScroll: true });
         }

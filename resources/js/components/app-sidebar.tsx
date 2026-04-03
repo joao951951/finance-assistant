@@ -1,5 +1,9 @@
 import { Link } from '@inertiajs/react';
 import { BookOpen, ChevronRight, FolderGit2, KeyRound, LayoutGrid, MessageSquare, Plus, Receipt, Upload } from 'lucide-react';
+import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
+import ImportController from '@/actions/App/Http/Controllers/ImportController';
+import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -18,10 +22,6 @@ import {
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import ImportController from '@/actions/App/Http/Controllers/ImportController';
-import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
-import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
 import type { NavItem } from '@/types';
 
 const topNavItems: NavItem[] = [

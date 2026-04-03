@@ -10,13 +10,21 @@ interface UseInfiniteScrollOptions {
 export function useInfiniteScroll({ hasMore, nextPage, only }: UseInfiniteScrollOptions) {
     const [isLoading, setIsLoading] = useState(false);
     const loaderRef = useRef<HTMLDivElement>(null);
+    const prevNextPageRef = useRef(nextPage);
+
+    // Reset loading when nextPage changes (data arrived) — render-phase pattern
+    if (prevNextPageRef.current !== nextPage) {
+        prevNextPageRef.current = nextPage;
+        if (isLoading) {
+            setIsLoading(false);
+        }
+    }
 
     useEffect(() => {
-        setIsLoading(false);
-    }, [nextPage]);
+        if (!loaderRef.current) {
+            return;
+        }
 
-    useEffect(() => {
-        if (!loaderRef.current) return;
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && hasMore && !isLoading) {
@@ -31,6 +39,7 @@ export function useInfiniteScroll({ hasMore, nextPage, only }: UseInfiniteScroll
             { threshold: 0.1 },
         );
         observer.observe(loaderRef.current);
+
         return () => observer.disconnect();
     }, [hasMore, isLoading, nextPage, only]);
 

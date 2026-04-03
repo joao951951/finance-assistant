@@ -1,5 +1,4 @@
 import { Form, Head } from '@inertiajs/react';
-import { asForm } from '@/lib/form';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 import InputError from '@/components/input-error';
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import AuthLayout from '@/layouts/auth-layout';
+import { asForm } from '@/lib/form';
 import { store } from '@/routes/two-factor/login';
 
 export default function TwoFactorChallenge() {

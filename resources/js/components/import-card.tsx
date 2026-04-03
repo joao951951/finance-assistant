@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { FileText, Trash2, Clock, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import ImportController from '@/actions/App/Http/Controllers/ImportController';
+import { Button } from '@/components/ui/button';
 import type { RawImport } from '@/types';
 
 const STATUS_CONFIG = {
@@ -14,6 +14,7 @@ const STATUS_CONFIG = {
 function StatusBadge({ status }: { status: RawImport['status'] }) {
     const config = STATUS_CONFIG[status];
     const Icon = config.icon;
+
     return (
         <span className="flex items-center gap-1 text-sm">
             <Icon className={`size-4 ${config.className}`} />

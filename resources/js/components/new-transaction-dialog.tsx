@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { Loader2 } from 'lucide-react';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -7,7 +8,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import type { Category } from '@/types';
 
 interface NewTransactionDialogProps {

@@ -1,10 +1,10 @@
 // Components
 import { Form, Head } from '@inertiajs/react';
-import { asForm } from '@/lib/form';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { asForm } from '@/lib/form';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 

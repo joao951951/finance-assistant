@@ -1,10 +1,10 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Upload, Loader2 } from 'lucide-react';
+import ImportController from '@/actions/App/Http/Controllers/ImportController';
+import { ImportCard } from '@/components/import-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImportCard } from '@/components/import-card';
 import AppLayout from '@/layouts/app-layout';
-import ImportController from '@/actions/App/Http/Controllers/ImportController';
 import type { BreadcrumbItem, RawImport } from '@/types';
 
 interface Props {
@@ -33,7 +33,10 @@ export default function ImportsIndex({ imports: importList }: Props) {
             onSuccess: () => {
                 reset();
                 const input = document.getElementById('file-upload') as HTMLInputElement | null;
-                if (input) input.value = '';
+
+                if (input) {
+input.value = '';
+}
             },
         });
     }
