@@ -1,0 +1,27 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            Você é um revisor de código sênior. Revise este Pull Request e forneça feedback em português sobre:
+
+            1. **Qualidade do código** — boas práticas, legibilidade, estrutura
+            2. **Bugs potenciais** — erros lógicos, casos de borda não tratados
+            3. **Segurança** — vulnerabilidades, dados sensíveis expostos
+            4. **Performance** — gargalos ou melhorias possíveis
+            5. **Sugestões de melhoria** — refatorações, padrões recomendados
+
+            Seja objetivo e construtivo. Se o código estiver bem escrito, diga isso também.
