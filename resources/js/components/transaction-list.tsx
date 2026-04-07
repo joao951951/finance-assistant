@@ -1,5 +1,5 @@
-import { formatBRL, formatDateBR } from '@/lib/formatters';
 import type { Transaction } from '@/types';
+import { formatBRL, formatDateBR } from '@/lib/formatters';
 
 export function TransactionList({
     transactions,

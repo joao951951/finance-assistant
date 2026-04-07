@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Upload, Loader2 } from 'lucide-react';
-import ImportController from '@/actions/App/Http/Controllers/ImportController';
+import type { BreadcrumbItem, RawImport } from '@/types';
 import { ImportCard } from '@/components/import-card';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +11,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, RawImport } from '@/types';
+import ImportController from '@/actions/App/Http/Controllers/ImportController';
 
 interface Props {
     imports: RawImport[];

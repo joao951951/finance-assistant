@@ -12,7 +12,14 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
+import type {
+    AvailableMonth,
+    BreadcrumbItem,
+    CategorySpending,
+    Summary,
+    Transaction,
+    TrendPoint,
+} from '@/types';
 import { EmptyState } from '@/components/empty-state';
 import { SummaryCard } from '@/components/summary-card';
 import { TransactionList } from '@/components/transaction-list';
@@ -26,15 +33,8 @@ import {
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { formatBRL, formatBRLCompact, formatDateBR } from '@/lib/formatters';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
-import type {
-    BreadcrumbItem,
-    Summary,
-    CategorySpending,
-    TrendPoint,
-    Transaction,
-    AvailableMonth,
-} from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

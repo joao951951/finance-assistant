@@ -11,13 +11,13 @@ import {
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
-import MessageController from '@/actions/App/Http/Controllers/MessageController';
+import type { BreadcrumbItem, Conversation, Message } from '@/types';
 import { MessageContent } from '@/components/message-content';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Conversation, Message } from '@/types';
+import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
+import MessageController from '@/actions/App/Http/Controllers/MessageController';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

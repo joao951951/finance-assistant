@@ -10,10 +10,7 @@ import {
     Receipt,
     Upload,
 } from 'lucide-react';
-import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
-import ImportController from '@/actions/App/Http/Controllers/ImportController';
-import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
+import type { NavItem } from '@/types';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -35,8 +32,11 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
+import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
+import ImportController from '@/actions/App/Http/Controllers/ImportController';
+import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
 
 const topNavItems: NavItem[] = [
     {

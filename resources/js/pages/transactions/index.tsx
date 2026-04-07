@@ -1,15 +1,15 @@
 import { Head, router } from '@inertiajs/react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
+import type { BreadcrumbItem, Category, Transaction } from '@/types';
 import { NewTransactionDialog } from '@/components/new-transaction-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import AppLayout from '@/layouts/app-layout';
 import { formatBRL, formatDateBR } from '@/lib/formatters';
+import TransactionController from '@/actions/App/Http/Controllers/TransactionController';
 import { dashboard } from '@/routes';
-import type { BreadcrumbItem, Transaction, Category } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────��──
 

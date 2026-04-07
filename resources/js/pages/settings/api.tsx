@@ -1,13 +1,13 @@
 import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
-import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
+import type { BreadcrumbItem } from '@/types';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import type { BreadcrumbItem } from '@/types';
+import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'API / IA', href: ApiController.edit.url() },

@@ -23,7 +23,7 @@ class OpenAiService
         ?string $chatModel = null,
         ?string $embeddingModel = null,
     ) {
-        $this->apiKey = $apiKey ?? config('services.openai.api_key', '');
+        $this->apiKey = (string) ($apiKey ?? config('services.openai.api_key', ''));
         $this->chatModel = $chatModel ?? config('services.openai.chat_model', 'gpt-4o');
         $this->embeddingModel = $embeddingModel ?? config('services.openai.embedding_model', 'text-embedding-3-small');
 

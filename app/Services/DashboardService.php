@@ -55,6 +55,10 @@ class DashboardService
 
     public function trend(int $userId, Carbon $from, Carbon $to): array
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return [];
+        }
+
         $rows = DB::select("
             SELECT
                 TO_CHAR(d.day, 'YYYY-MM-DD')                                                      AS period,
@@ -101,9 +105,13 @@ class DashboardService
 
     public function availableMonths(int $userId): array
     {
+        $expr = DB::getDriverName() === 'pgsql'
+            ? "TO_CHAR(date, 'YYYY-MM')"
+            : "strftime('%Y-%m', date)";
+
         return Transaction::where('user_id', $userId)
-            ->selectRaw("TO_CHAR(date, 'YYYY-MM') AS value")
-            ->groupByRaw("TO_CHAR(date, 'YYYY-MM')")
+            ->selectRaw("{$expr} AS value")
+            ->groupByRaw($expr)
             ->orderByDesc('value')
             ->limit(24)
             ->get()
