@@ -3,7 +3,13 @@ import { Upload, Loader2 } from 'lucide-react';
 import ImportController from '@/actions/App/Http/Controllers/ImportController';
 import { ImportCard } from '@/components/import-card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, RawImport } from '@/types';
 
@@ -17,7 +23,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ImportsIndex({ imports: importList }: Props) {
-    const { data, setData, post, processing, errors, reset } = useForm<{ files: File[] }>({
+    const { data, setData, post, processing, errors, reset } = useForm<{
+        files: File[];
+    }>({
         files: [],
     });
 
@@ -32,20 +40,23 @@ export default function ImportsIndex({ imports: importList }: Props) {
             forceFormData: true,
             onSuccess: () => {
                 reset();
-                const input = document.getElementById('file-upload') as HTMLInputElement | null;
+                const input = document.getElementById(
+                    'file-upload',
+                ) as HTMLInputElement | null;
 
                 if (input) {
-input.value = '';
-}
+                    input.value = '';
+                }
             },
         });
     }
 
-    const fileLabel = data.files.length === 0
-        ? 'Clique ou arraste os arquivos aqui'
-        : data.files.length === 1
-            ? data.files[0].name
-            : `${data.files.length} arquivos selecionados`;
+    const fileLabel =
+        data.files.length === 0
+            ? 'Clique ou arraste os arquivos aqui'
+            : data.files.length === 1
+              ? data.files[0].name
+              : `${data.files.length} arquivos selecionados`;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -57,26 +68,40 @@ input.value = '';
                     <CardHeader>
                         <CardTitle>Importar Extrato</CardTitle>
                         <CardDescription>
-                            Envie extratos CSV ou PDF do seu banco. Suporte a Nubank, Inter, Bradesco, C6 e formatos genéricos. Você pode selecionar vários arquivos de uma vez.
+                            Envie extratos CSV ou PDF do seu banco. Suporte a
+                            Nubank, Inter, Bradesco, C6 e formatos genéricos.
+                            Você pode selecionar vários arquivos de uma vez.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleSubmit} className="flex items-end gap-4">
+                        <form
+                            onSubmit={handleSubmit}
+                            className="flex items-end gap-4"
+                        >
                             <div className="flex-1">
                                 <label
                                     htmlFor="file-upload"
                                     className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 px-6 py-8 text-center transition hover:border-primary/50 hover:bg-accent"
                                 >
                                     <Upload className="mb-2 size-8 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{fileLabel}</span>
+                                    <span className="text-sm font-medium">
+                                        {fileLabel}
+                                    </span>
                                     {data.files.length > 1 && (
                                         <ul className="mt-2 flex flex-col gap-0.5">
                                             {data.files.map((f, i) => (
-                                                <li key={i} className="text-xs text-muted-foreground">{f.name}</li>
+                                                <li
+                                                    key={i}
+                                                    className="text-xs text-muted-foreground"
+                                                >
+                                                    {f.name}
+                                                </li>
                                             ))}
                                         </ul>
                                     )}
-                                    <span className="mt-2 text-xs text-muted-foreground">CSV ou PDF · até 20 MB por arquivo</span>
+                                    <span className="mt-2 text-xs text-muted-foreground">
+                                        CSV ou PDF · até 20 MB por arquivo
+                                    </span>
                                     <input
                                         id="file-upload"
                                         type="file"
@@ -87,14 +112,25 @@ input.value = '';
                                     />
                                 </label>
                                 {errors.files && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.files}</p>
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.files}
+                                    </p>
                                 )}
                             </div>
-                            <Button type="submit" disabled={data.files.length === 0 || processing}>
+                            <Button
+                                type="submit"
+                                disabled={data.files.length === 0 || processing}
+                            >
                                 {processing ? (
-                                    <><Loader2 className="mr-2 size-4 animate-spin" /> Enviando...</>
+                                    <>
+                                        <Loader2 className="mr-2 size-4 animate-spin" />{' '}
+                                        Enviando...
+                                    </>
                                 ) : (
-                                    <><Upload className="mr-2 size-4" /> Enviar</>
+                                    <>
+                                        <Upload className="mr-2 size-4" />{' '}
+                                        Enviar
+                                    </>
                                 )}
                             </Button>
                         </form>

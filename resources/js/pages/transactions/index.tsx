@@ -52,7 +52,12 @@ export default function TransactionsIndex({
         [],
     );
 
-    const { allItems: allTransactions, loaderRef, isLoading, resetItems } = useInfiniteScroll<Transaction>({
+    const {
+        allItems: allTransactions,
+        loaderRef,
+        isLoading,
+        resetItems,
+    } = useInfiniteScroll<Transaction>({
         initialItems: initialTransactions,
         hasMore: has_more,
         nextPage: next_page,
@@ -71,7 +76,8 @@ export default function TransactionsIndex({
         router.delete(TransactionController.destroy.url({ transaction: id }), {
             preserveState: true,
             preserveUrl: true,
-            onSuccess: () => resetItems(allTransactions.filter((t) => t.id !== id)),
+            onSuccess: () =>
+                resetItems(allTransactions.filter((t) => t.id !== id)),
         });
     }
 
@@ -82,8 +88,12 @@ export default function TransactionsIndex({
             <div className="flex flex-col gap-4 p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-lg font-semibold">Todas as transações</h1>
-                        <p className="text-sm text-muted-foreground">{total} transações no total</p>
+                        <h1 className="text-lg font-semibold">
+                            Todas as transações
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {total} transações no total
+                        </p>
                     </div>
                     <Button size="sm" onClick={() => setNewOpen(true)}>
                         <Plus className="mr-1.5 size-4" />
@@ -102,17 +112,28 @@ export default function TransactionsIndex({
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b text-left text-muted-foreground">
-                                        <th className="px-4 pb-3 pt-2 font-medium">Data</th>
-                                        <th className="px-4 pb-3 pt-2 font-medium">Descrição</th>
-                                        <th className="hidden px-4 pb-3 pt-2 font-medium sm:table-cell">Categoria</th>
-                                        <th className="px-4 pb-3 pt-2 text-right font-medium">Valor</th>
-                                        <th className="px-4 pb-3 pt-2" />
+                                        <th className="px-4 pt-2 pb-3 font-medium">
+                                            Data
+                                        </th>
+                                        <th className="px-4 pt-2 pb-3 font-medium">
+                                            Descrição
+                                        </th>
+                                        <th className="hidden px-4 pt-2 pb-3 font-medium sm:table-cell">
+                                            Categoria
+                                        </th>
+                                        <th className="px-4 pt-2 pb-3 text-right font-medium">
+                                            Valor
+                                        </th>
+                                        <th className="px-4 pt-2 pb-3" />
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {allTransactions.map((t) => (
-                                        <tr key={t.id} className="group border-b last:border-0 hover:bg-muted/30">
-                                            <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                                        <tr
+                                            key={t.id}
+                                            className="group border-b last:border-0 hover:bg-muted/30"
+                                        >
+                                            <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                                                 {formatDateBR(t.date)}
                                             </td>
                                             <td className="max-w-[200px] truncate px-4 py-3 sm:max-w-[320px]">
@@ -122,7 +143,9 @@ export default function TransactionsIndex({
                                                 <span
                                                     className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
                                                     style={{
-                                                        background: t.category_color + '22',
+                                                        background:
+                                                            t.category_color +
+                                                            '22',
                                                         color: t.category_color,
                                                     }}
                                                 >
@@ -130,16 +153,23 @@ export default function TransactionsIndex({
                                                 </span>
                                             </td>
                                             <td
-                                                className={`whitespace-nowrap px-4 py-3 text-right font-medium ${
-                                                    t.type === 'credit' ? 'text-green-500' : 'text-red-500'
+                                                className={`px-4 py-3 text-right font-medium whitespace-nowrap ${
+                                                    t.type === 'credit'
+                                                        ? 'text-green-500'
+                                                        : 'text-red-500'
                                                 }`}
                                             >
-                                                {t.type === 'credit' ? '+' : '-'}{formatBRL(t.amount)}
+                                                {t.type === 'credit'
+                                                    ? '+'
+                                                    : '-'}
+                                                {formatBRL(t.amount)}
                                             </td>
                                             <td className="px-2 py-3">
                                                 <button
-                                                    onClick={() => deleteTransaction(t.id)}
-                                                    className="invisible rounded p-1 text-muted-foreground hover:text-red-500 group-hover:visible"
+                                                    onClick={() =>
+                                                        deleteTransaction(t.id)
+                                                    }
+                                                    className="invisible rounded p-1 text-muted-foreground group-hover:visible hover:text-red-500"
                                                     title="Excluir"
                                                 >
                                                     <Trash2 className="size-3.5" />
@@ -151,10 +181,17 @@ export default function TransactionsIndex({
                             </table>
                         </div>
 
-                        <div ref={loaderRef} className="flex justify-center py-6">
-                            {isLoading && <Loader2 className="size-5 animate-spin text-muted-foreground" />}
+                        <div
+                            ref={loaderRef}
+                            className="flex justify-center py-6"
+                        >
+                            {isLoading && (
+                                <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                            )}
                             {!has_more && allTransactions.length > 0 && (
-                                <p className="text-xs text-muted-foreground">Todas as transações carregadas</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Todas as transações carregadas
+                                </p>
                             )}
                         </div>
                     </CardContent>

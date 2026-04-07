@@ -7,15 +7,26 @@ interface SummaryCardProps {
     valueClass?: string;
 }
 
-export function SummaryCard({ title, value, subtitle, valueClass = '' }: SummaryCardProps) {
+export function SummaryCard({
+    title,
+    value,
+    subtitle,
+    valueClass = '',
+}: SummaryCardProps) {
     return (
         <Card>
             <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {title}
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 <p className={`text-2xl font-bold ${valueClass}`}>{value}</p>
-                {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
+                {subtitle && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        {subtitle}
+                    </p>
+                )}
             </CardContent>
         </Card>
     );

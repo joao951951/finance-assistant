@@ -1,5 +1,15 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, ChevronRight, FolderGit2, KeyRound, LayoutGrid, MessageSquare, Plus, Receipt, Upload } from 'lucide-react';
+import {
+    BookOpen,
+    ChevronRight,
+    FolderGit2,
+    KeyRound,
+    LayoutGrid,
+    MessageSquare,
+    Plus,
+    Receipt,
+    Upload,
+} from 'lucide-react';
 import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
 import ImportController from '@/actions/App/Http/Controllers/ImportController';
 import ApiController from '@/actions/App/Http/Controllers/Settings/ApiController';
@@ -8,7 +18,11 @@ import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     Sidebar,
     SidebarContent,
@@ -97,14 +111,22 @@ export function AppSidebar() {
                                     <SidebarMenuSub>
                                         <SidebarMenuSubItem>
                                             <SidebarMenuSubButton asChild>
-                                                <Link href={TransactionController.index.url()} prefetch>
+                                                <Link
+                                                    href={TransactionController.index.url()}
+                                                    prefetch
+                                                >
                                                     Todas as transações
                                                 </Link>
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                         <SidebarMenuSubItem>
                                             <SidebarMenuSubButton asChild>
-                                                <Link href={TransactionController.index.url() + '?new=1'}>
+                                                <Link
+                                                    href={
+                                                        TransactionController.index.url() +
+                                                        '?new=1'
+                                                    }
+                                                >
                                                     <Plus className="size-3.5" />
                                                     Nova transação
                                                 </Link>

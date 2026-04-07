@@ -109,9 +109,7 @@ export default function Security({
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password">
-                                        Nova senha
-                                    </Label>
+                                    <Label htmlFor="password">Nova senha</Label>
 
                                     <PasswordInput
                                         id="password"
@@ -179,8 +177,8 @@ export default function Security({
                             <div className="flex flex-col items-start justify-start space-y-4">
                                 <p className="text-sm text-muted-foreground">
                                     Durante o login, será solicitado um código
-                                    seguro e aleatório que você pode obter
-                                    pelo aplicativo TOTP no seu celular.
+                                    seguro e aleatório que você pode obter pelo
+                                    aplicativo TOTP no seu celular.
                                 </p>
 
                                 <div className="relative inline">
@@ -206,10 +204,10 @@ export default function Security({
                         ) : (
                             <div className="flex flex-col items-start justify-start space-y-4">
                                 <p className="text-sm text-muted-foreground">
-                                    Ao ativar a autenticação em dois fatores,
-                                    um código seguro será solicitado durante o
-                                    login. Obtenha o código pelo aplicativo
-                                    TOTP no seu celular.
+                                    Ao ativar a autenticação em dois fatores, um
+                                    código seguro será solicitado durante o
+                                    login. Obtenha o código pelo aplicativo TOTP
+                                    no seu celular.
                                 </p>
 
                                 <div>

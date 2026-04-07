@@ -1,13 +1,28 @@
 import { router } from '@inertiajs/react';
-import { FileText, Trash2, Clock, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+    FileText,
+    Trash2,
+    Clock,
+    Loader2,
+    CheckCircle,
+    AlertCircle,
+} from 'lucide-react';
 import ImportController from '@/actions/App/Http/Controllers/ImportController';
 import { Button } from '@/components/ui/button';
 import type { RawImport } from '@/types';
 
 const STATUS_CONFIG = {
     pending: { label: 'Aguardando', icon: Clock, className: 'text-yellow-500' },
-    processing: { label: 'Processando', icon: Loader2, className: 'text-blue-500 animate-spin' },
-    done: { label: 'Concluído', icon: CheckCircle, className: 'text-green-500' },
+    processing: {
+        label: 'Processando',
+        icon: Loader2,
+        className: 'text-blue-500 animate-spin',
+    },
+    done: {
+        label: 'Concluído',
+        icon: CheckCircle,
+        className: 'text-green-500',
+    },
     failed: { label: 'Erro', icon: AlertCircle, className: 'text-red-500' },
 } as const;
 
@@ -38,11 +53,15 @@ export function ImportCard({ item }: { item: RawImport }) {
                     <p className="text-sm font-medium">{item.filename}</p>
                     <p className="text-xs text-muted-foreground">
                         {item.bank ? `${item.bank} · ` : ''}
-                        {item.transactions_count > 0 ? `${item.transactions_count} transações · ` : ''}
+                        {item.transactions_count > 0
+                            ? `${item.transactions_count} transações · `
+                            : ''}
                         {new Date(item.created_at).toLocaleDateString('pt-BR')}
                     </p>
                     {item.error_message && (
-                        <p className="mt-1 text-xs text-red-500">{item.error_message}</p>
+                        <p className="mt-1 text-xs text-red-500">
+                            {item.error_message}
+                        </p>
                     )}
                 </div>
             </div>

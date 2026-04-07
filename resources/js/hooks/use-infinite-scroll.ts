@@ -27,7 +27,9 @@ export function useInfiniteScroll<T>({
             only,
             preserveUrl: true,
             onSuccess: (page) => {
-                const newItems = getItems(page.props as Record<string, unknown>);
+                const newItems = getItems(
+                    page.props as Record<string, unknown>,
+                );
                 setAllItems((prev) => [...prev, ...newItems]);
             },
             onFinish: () => setIsLoading(false),
