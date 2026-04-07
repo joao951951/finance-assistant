@@ -26,11 +26,13 @@ return new class extends Migration
             $table->index(['user_id', 'category_id']);
         });
 
-        // pgvector column — Blueprint has no native support
-        DB::statement('ALTER TABLE transactions ADD COLUMN embedding vector(1536)');
+        if (DB::getDriverName() === 'pgsql') {
+            // pgvector column — Blueprint has no native support
+            DB::statement('ALTER TABLE transactions ADD COLUMN embedding vector(1536)');
 
-        // HNSW index for fast cosine similarity search
-        DB::statement('CREATE INDEX ON transactions USING hnsw (embedding vector_cosine_ops)');
+            // HNSW index for fast cosine similarity search
+            DB::statement('CREATE INDEX ON transactions USING hnsw (embedding vector_cosine_ops)');
+        }
     }
 
     public function down(): void
